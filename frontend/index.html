@@ -1,12 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>text</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- 簡體轉繁體：opencc-js（在前端強制把機器回覆轉成繁體中文） -->
+  <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
+  <script>
+    // 建立一個簡體 -> 台灣正體 的轉換器，全域可用
+    window.toTraditional = OpenCC.Converter({ from: "cn", to: "tw" });
+  </script>
 </head>
 <body>
-    <h1>labs text</h1>
-    <a href="pages/login.html">Go to Login</a>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="avatar-ring">
+      <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
+    </div>
+    <div class="header-info">
+      <h1>AI聊天測試</h1>
+      <span><span class="status-dot"></span>線上</span>
+    </div>
+  </header>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages">
+    <div class="welcome" id="welcome">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+      <p>開始對話吧…</p>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea
+        id="userInput"
+        rows="1"
+        placeholder="輸入訊息…"
+        maxlength="2000"
+      ></textarea>
+      <button class="send-btn" id="sendBtn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/chat.js"></script>
 </body>
 </html>
