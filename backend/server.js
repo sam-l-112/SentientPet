@@ -7,31 +7,36 @@ const app = express()
 
 // API routes
 const authRoutes = require("./routes/auth")
+const aiRoutes = require("./routes/ai")
 // const petRoutes = require("./routes/pet")
 
 // 解析 JSON 中間件
 app.use(cors())
 app.use(express.json())
-
+app.use(express.static(path.join(__dirname, '../frontend')))
 // 提供 frontend 網頁 nginx 不會用到
 // app.use(express.static(path.join(__dirname,"../frontend")))
 // app.use(express.static(path.join(__dirname,"../frontend/pages/login.html")))
 
 // API 路徑
 app.use("/api/auth", authRoutes)
+app.use("/api/ai", aiRoutes)
 // app.use("/api/pets",petRoutes)
+
 // 路由邏輯寫在nginx try_files
-// 啟動 server
-// app.get('*',(req, res)=>{
-//     res.sendFile(path.join(__dirname, '../frontend/pages/login.html'))
-// })
-// app.listen(80, () => console.log('Server running on port 80'))
+app.get('/api/data', (req, res) => {
+    res.json({ message: "回傳資料"})
+})
 
-// app.use(cors({
-//     origin: 'http://192.168.50.150', // 只允許來自你伺服器 IP 的請求
-//     methods: ['GET', 'POST'],
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// }));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', '../frontend/pages/login.html'))
+})
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend API running on prot ${PORT}`))
+
+
+const PORT = process.env.NODE_PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Backend API 已成功啟動！`);
+    console.log(`Backend API 已啟動:http://localhost:${PORT}`)
+    console.log(`區網存取位址:http://192.168.50.150:${PORT}`)
+})

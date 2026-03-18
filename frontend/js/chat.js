@@ -130,4 +130,3 @@ async function handleSend() {
     appendMessage("bot", `⚠️ 發生錯誤：${err.message}`);
   }
 }
-

@@ -9,11 +9,48 @@ async function loadUser() {
     // document.getElementById("userinfo").innerText = JSON.stringify(data);
 }
 
-function logout(){
-    localStorage.removeItem("token")
+// function logout(){
+//     localStorage.removeItem("token")
 
-    alert("你已成功登出")
-    window.location.href = "login.htmel";
-}
+//     alert("你已成功登出")
+//     window.location.href = "login.htmel";
+// }
 
-document.getElementById("logoutBtn").addEventListener("click", logout)
+// document.getElementById("logoutBtn").addEventListener("click", logout)
+// // 確保按鈕存在後再綁定監聽器
+// const logoutBtn = document.getElementById("logoutBtn");
+// if (logoutBtn) {
+//     logoutBtn.addEventListener("click", logout);
+// }
+// // login.js
+// function loginSuccess(token) {
+//     localStorage.setItem("token", token); // 存票券
+//     window.location.href = "index.html";  // 跳轉到首頁
+// }
+// // 在頁面載入時執行
+// window.onload = function() {
+//     const token = localStorage.getItem("token");
+//     if (!token) {
+//         // 如果找不到 Token，表示未登入
+//         alert("請先登入！");
+//         window.location.href = "login.html";
+//     }
+// };
+// // index.js
+// function logout() {
+//     localStorage.removeItem("token");     // 丟掉票券
+//     window.location.href = "login.html";  // 回到登入頁
+// }
+
+// ai 使用
+// async function callAI() {
+//     const userInput = document.getElementById("ai-input").value;
+    
+//     try {
+//         // 透過你的 Nginx -> Node.js -> Hugging Face
+//         const res = await api.post("/ai/ask", { prompt: userInput });
+//         console.log("AI 回覆：", res.data.data);
+//     } catch (error) {
+//         alert("AI 呼叫失敗");
+//     }
+// }

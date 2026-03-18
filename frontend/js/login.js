@@ -1,9 +1,9 @@
-import axios from 'axios';
+// import axios from 'axios';
 
-const api = axios.creat({
-    baseURL: "http://192.168.50.150:3000",
+const api = axios.create({
+    // baseURL: "http://192.168.50.150:3000",
     timeout: 5000,
-    headers: {'Content-Type': 'application/json'}
+    // headers: {'Content-Type': 'application/json'}
 })
 
 async function login(){
@@ -14,7 +14,7 @@ const errorMsgElement = document.getElementById("error-msg")
 // const API_BASE_URL = "http://192.168.50.150:3000"
 
     try{ 
-        const res = await axios.post("/api/auth/login",{ username,password })
+        const res = await api.post("/api/auth/login",{ username,password })
 
         const data = res.data
         if (data.message == "login success"){
@@ -23,14 +23,14 @@ const errorMsgElement = document.getElementById("error-msg")
             if (data.token){
                 localStorage.setItem("userToken", data.token)
             }
-            window.location.href = "databoard.html"
+            window.location.href = "dashboard.html"
         } else {
             errorMsgElement.innerText = data.message
         }
     } catch (error){ 
         // Axios 會自動捕捉 4xx 或 5xx 的錯誤
         if (error.response) {
-            orrorMsgElement.innerText = error.response.data.message || "登入失敗"
+            errorMsgElement.innerText = error.response.data.message || "登入失敗"
         } else {
             errorMsgElement.innerText = "連線伺服器失敗，請稍後再試"
         }
@@ -40,4 +40,4 @@ const errorMsgElement = document.getElementById("error-msg")
 document.getElementById("loginForm").addEventListener("submit", function(event) {
     event.preventDefault();
     login();
-});
+})
