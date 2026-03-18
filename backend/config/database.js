@@ -1,5 +1,5 @@
 const mariadb = require("mariadb")
-
+// require('dotenv').config()
 const pool = mariadb.createPool({
 
     host: process.env.DB_HOST,
@@ -7,7 +7,7 @@ const pool = mariadb.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     port: parseInt(process.env.DB_PORT) || 3306,
-    connectioinLimit: 5
+    connectionLimit: 5
     // 設定.env 檔案之前
 // host:"localhost",
 

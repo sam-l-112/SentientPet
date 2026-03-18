@@ -18,7 +18,7 @@ async function callAPI(messages) {
   // return data.reply;
 
   // 目前先回傳簡單的假回覆，讓前端可直接使用
-  return `（測試）你說的是：「${userMessage}」\n目前後端還沒有聊天 API，所以先回傳這段測試文字。`;
+  return `（測試）你說的是：「${userMessage}」\n目前後端還沒有聊天 API , 所以先回傳這段測試文字。`;
 }
 
 /* ═══════════════════════════════════════════════════

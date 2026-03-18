@@ -8,3 +8,12 @@ async function loadUser() {
     // const data = await res.json();
     // document.getElementById("userinfo").innerText = JSON.stringify(data);
 }
+
+function logout(){
+    localStorage.removeItem("token")
+
+    alert("你已成功登出")
+    window.location.href = "login.htmel";
+}
+
+document.getElementById("logoutBtn").addEventListener("click", logout)
