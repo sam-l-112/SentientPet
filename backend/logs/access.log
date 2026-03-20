@@ -1,0 +1,6 @@
+192.168.50.26 - - [20/Mar/2026:10:20:27 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://192.168.50.150/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 192.168.50.26 | 時間: 3/20/2026, 10:20:27 AM
+101.8.241.157 - - [20/Mar/2026:10:22:31 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36"
+[AUTH FAILED]密碼錯誤: admin | IP: 101.8.241.157 | 時間: 3/20/2026, 10:22:31 AM
+101.8.241.157 - - [20/Mar/2026:10:22:56 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 101.8.241.157 | 時間: 3/20/2026, 10:22:56 AM
