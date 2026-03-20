@@ -3,7 +3,7 @@ async function login(){
 const username=document.getElementById("username").value
 const password=document.getElementById("password").value
 
-const res = await fetch("/api/auth/login",{
+const res = await fetch("http://210.70.254.110:2235/api/auth/login",{
 
 method:"POST",
 
