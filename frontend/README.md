@@ -1,42 +1,78 @@
-## 專案說明：AI 聊天小寵物（純前端展示版）
+## 專案說明：AI 聊天小寵物（前端）
 
-這是一個簡單的 **網頁聊天介面（純前端）**，用來展示聊天 App 風格的 UI 與互動流程。
+這是 SentientPet-AI 的**前端部分**，包含聊天介面、登入頁面與登入後的 Dashboard。
 
-目前版本的前端會：
-- 顯示對話 UI（訊息氣泡、typing 動畫、Enter 送出 / Shift+Enter 換行）
-- 將 AI 回覆（若有）嘗試從簡體自動轉成繁體中文（使用 `opencc-js`）
-- **注意**：目前 `chat.js` 的 `callAPI()` 為「假回覆」，用來確認前端流程正常；尚未連接真實聊天 API
+前端目前實作：
+- 聊天 UI（訊息氣泡、typing 動畫、Enter 送出 / Shift+Enter 換行）
+- 串接後端 AI API（`POST /api/ai/ask`），支援多輪對話歷史
+- AI 回覆自動過濾思考過程，只顯示最終答案
+- AI 回覆自動從簡體轉成繁體中文（使用 `opencc-js`）
+- 登入功能，串接後端驗證 API（`POST /api/auth/login`），成功後導向 Dashboard
+- Dashboard 頁面（取得使用者資料功能待後端 API 實作）
 
 ---
 
 ## 專案結構
 
-- `index.html`：聊天介面主頁（純前端）
-- `style.css`：聊天介面樣式
-- `chat.js`：前端互動邏輯（目前使用假回覆）
+```
+frontend/
+  pages/
+    login.html       # 登入頁面
+    dashboard.html   # 登入後的 Dashboard
+  js/
+    login.js         # 登入邏輯，串接 /api/auth/login
+    dashboard.js     # Dashboard 邏輯（取得使用者資料，待實作）
+    chat.js          # 聊天介面邏輯，串接 /api/ai/ask
+  css/
+    style.css        # 全站樣式
+index.html           # 聊天介面主頁（入口）
+```
 
 ---
 
-## 安裝與啟動
+## 頁面說明
 
-### 開啟前端頁面
+### `index.html` — 聊天介面（入口）
 
-用瀏覽器開啟 `index.html`：
+應用程式的主入口，提供 AI 聊天 UI。
 
-- 可以在檔案總管中雙擊 `index.html`，或
-- 在瀏覽器選「開啟檔案」，選到此資料夾的 `index.html`
+- 頁面載入後即可輸入訊息與 AI 對話
+- 訊息歷史保存於記憶體中（頁面重整後清空）
+- 頁面底部提供連結導向登入頁面
 
-接著就可以在畫面中輸入訊息，測試聊天 UI 流程（目前回覆為假回覆）。
+### `pages/login.html` — 登入頁面
+
+- 輸入帳號密碼後送出表單
+- 呼叫後端 `POST /api/auth/login`
+- 登入成功後自動跳轉至 `dashboard.html`
+- 登入失敗則在表單下方顯示錯誤訊息
+
+### `pages/dashboard.html` — Dashboard
+
+- 登入成功後的歡迎頁面
+- 提供「取得使用者資料」按鈕（待後端 `/api/auth/me` 實作後串接）
+- 提供登出連結，回到登入頁面
 
 ---
 
-## 技術細節與行為說明
+## 技術細節
 
-### 前端：`chat.js`
+### `chat.js` — 聊天邏輯
 
-- `handleSend()` 把使用者輸入送給 `callAPI()`，並處理 UI（顯示氣泡、typing 動畫）
-- 目前 `callAPI()` 回傳假回覆（未連接真實聊天 API）
-- 在顯示回覆前，會先嘗試用 `window.toTraditional()`（來自 `opencc-js`）把簡體轉成繁體，再顯示。
+- `handleSend()` 取得使用者輸入，更新訊息歷史，顯示 typing 動畫，呼叫 `callAPI()`
+- `callAPI()` 將訊息與歷史送至後端 `POST /api/ai/ask`，兼容多種回傳格式（`reply`、`answer`、`message`、`text`、`result` 等欄位）
+- `sanitizeAnswer()` 過濾 AI 回傳中的思考過程（`Thinking Process:` / `Final Choice:`），只顯示最終答案
+- 收到回覆後，若 `window.toTraditional` 存在，自動轉換為繁體中文再顯示
+
+### `login.js` — 登入邏輯
+
+- 監聽表單 submit 事件，防止頁面跳轉
+- 取得帳號密碼後，以 `fetch` 呼叫 `POST /api/auth/login`
+- 根據回傳的 `data.message` 判斷登入成功或失敗
+
+### `dashboard.js` — Dashboard 邏輯
+
+- 目前 `loadUser()` 為佔位函數，待後端 `/api/auth/me` 實作後串接
 
 ### 簡體轉繁體：`opencc-js`
 
@@ -49,37 +85,55 @@
 </script>
 ```
 
-前端在顯示 AI 回覆前會呼叫：
+---
 
-```js
-reply = window.toTraditional(reply);
-```
+## 使用的前端套件
 
-確保畫面上看到的是繁體中文。
+| 套件 | 用途 |
+|------|------|
+| [opencc-js](https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js) | 簡體轉繁體中文 |
+| [axios](https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js) | HTTP 請求（login.html 引入） |
+| [Vue 3](https://unpkg.com/vue@3/dist/vue.global.js) | UI 框架（login.html 引入，保留供後續使用） |
+| [Google Fonts](https://fonts.google.com/) | Lora + DM Sans 字型 |
+
+---
+
+## API 對接說明
+
+| Method | Endpoint | 說明 |
+|--------|----------|------|
+| `POST` | `/api/auth/login` | 登入，body 帶 `username` 與 `password`，成功回傳 `{ message: "login success" }` |
+| `POST` | `/api/ai/ask` | 傳送訊息給 AI，body 帶 `message`、`history` 等欄位，回傳 AI 回覆 |
+
+後端 API 位址目前設定為 `http://210.70.254.110:2235`，如有變更請同步修改 `login.js` 與 `chat.js` 中的 URL。
+
+---
+
+## 待辦事項
+
+1. **Dashboard 用戶資料**：後端實作 `GET /api/auth/me` 後，串接至 `dashboard.js`
+2. **登出功能**：實作 token 清除與登出導向邏輯
+3. **登入狀態保護**：Dashboard 頁面加入未登入時自動導向登入頁的判斷
+4. **聊天記錄持久化**：目前頁面重整後歷史清空，可考慮存入 localStorage 或資料庫
 
 ---
 
 ## 常見問題（FAQ）
 
-### 1. 為什麼一開始是 `Failed to fetch`？
+### 1. 為什麼出現 `Failed to fetch`？
 
-- 如果你將來要讓前端直接呼叫外部聊天 API，可能會遇到 CORS 或金鑰外洩風險。
-- 建議做法是由你們的後端提供一個 `/api/chat`，前端只呼叫你們自己的後端。
+- 通常是 CORS 問題，或後端服務尚未啟動。
+- 確認後端伺服器正在運行，且已允許前端來源的跨域請求。
 
-### 2. 為什麼出現 `410` 或 `404` 錯誤？
+### 2. 為什麼 AI 回覆顯示思考過程而不是最終答案？
 
-- 這類錯誤通常出現在「串接外部模型服務 API」時。
-- 目前純前端展示版未直接呼叫外部模型服務，因此不會遇到上述錯誤。
+- `chat.js` 的 `sanitizeAnswer()` 會自動過濾 `Thinking Process:` 與 `Final Choice:` 格式的思考過程。
+- 若後端 AI 回傳格式有變動，請同步調整此函數的正則條件。
 
-### 3. 為什麼模型會產生 `<think>...</think>`？
+### 3. 為什麼出現 `500` 或 `503`？
 
-- 這是部分模型的輸出格式（思考過程＋最終答案）。
-- 目前純前端展示版未連接模型；若你們後端之後要接模型，可在後端過濾 `<think>...</think>` 後再回傳給前端。
-
-### 4. 為什麼有時會收到 500 或 503？
-
-- 這通常是上游服務暫時性錯誤（服務忙碌或節點異常）。
-- 若你們後端將來要串接模型服務，可加入重試與更完整的錯誤處理。
+- 通常是後端或上游 AI 服務的暫時性錯誤。
+- 前端會在訊息區顯示 `⚠️ 發生錯誤：...`，可依錯誤訊息排查後端狀況。
 
 ---
 
