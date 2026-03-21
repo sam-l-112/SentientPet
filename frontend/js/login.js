@@ -21,8 +21,9 @@ password
 const data = await res.json()
 
 if(data.message === "login success"){
-    // 登入成功，重定向到 dashboard
-    window.location.href = "dashboard.html";
+    // 登入成功，存儲用戶資訊並重定向到聊天首頁
+    localStorage.setItem("user", JSON.stringify(data.user));
+    window.location.href = "../index.html";
 } else {
     // 顯示錯誤
     document.getElementById("error-msg").innerText = data.message;
