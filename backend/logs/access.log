@@ -4,3 +4,80 @@
 [AUTH FAILED]密碼錯誤: admin | IP: 101.8.241.157 | 時間: 3/20/2026, 10:22:31 AM
 101.8.241.157 - - [20/Mar/2026:10:22:56 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36"
 [AUTH SUCCESS]使用者: admin | IP: 101.8.241.157 | 時間: 3/20/2026, 10:22:56 AM
+192.168.50.26 - - [20/Mar/2026:10:58:26 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://192.168.50.150/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 192.168.50.26 | 時間: 3/20/2026, 10:58:26 AM
+114.47.174.237 - - [20/Mar/2026:11:28:24 +0000] "POST /api/ai/ask HTTP/1.1" 200 1931 "http://210.70.254.110:2235/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+114.47.174.237 - - [20/Mar/2026:11:29:11 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 114.47.174.237 | 時間: 3/20/2026, 11:29:11 AM
+114.47.174.237 - - [20/Mar/2026:11:41:55 +0000] "POST /api/ai/ask HTTP/1.1" 200 1999 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+114.47.174.237 - - [20/Mar/2026:11:42:35 +0000] "POST /api/ai/ask HTTP/1.1" 200 2023 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.60.159 - - [21/Mar/2026:02:59:59 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: sdf | IP: 1.172.60.159 | 時間: 3/21/2026, 2:59:59 AM
+1.172.60.159 - - [21/Mar/2026:03:00:23 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: 234 | IP: 1.172.60.159 | 時間: 3/21/2026, 3:00:23 AM
+1.172.60.159 - - [21/Mar/2026:03:00:23 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: 234 | IP: 1.172.60.159 | 時間: 3/21/2026, 3:00:23 AM
+1.172.60.159 - - [21/Mar/2026:03:02:01 +0000] "POST /api/ai/ask HTTP/1.1" 200 2048 "http://210.70.254.110:2235/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.60.159 - - [21/Mar/2026:03:33:37 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:37 AM
+1.172.60.159 - - [21/Mar/2026:03:33:39 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:39 AM
+1.172.60.159 - - [21/Mar/2026:03:33:40 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:40 AM
+1.172.60.159 - - [21/Mar/2026:03:33:40 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:40 AM
+1.172.60.159 - - [21/Mar/2026:03:33:41 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:41 AM
+1.172.60.159 - - [21/Mar/2026:03:33:42 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:42 AM
+1.172.60.159 - - [21/Mar/2026:03:33:42 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:42 AM
+1.172.60.159 - - [21/Mar/2026:03:33:43 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:43 AM
+1.172.60.159 - - [21/Mar/2026:03:33:48 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:48 AM
+1.172.60.159 - - [21/Mar/2026:03:33:48 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:48 AM
+1.172.60.159 - - [21/Mar/2026:03:33:49 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:49 AM
+1.172.60.159 - - [21/Mar/2026:03:33:49 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:49 AM
+1.172.60.159 - - [21/Mar/2026:03:33:50 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:50 AM
+1.172.60.159 - - [21/Mar/2026:03:33:50 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:50 AM
+1.172.60.159 - - [21/Mar/2026:03:33:50 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:50 AM
+1.172.60.159 - - [21/Mar/2026:03:33:50 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:50 AM
+1.172.60.159 - - [21/Mar/2026:03:33:50 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:50 AM
+1.172.60.159 - - [21/Mar/2026:03:33:51 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:51 AM
+1.172.60.159 - - [21/Mar/2026:03:33:51 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:51 AM
+1.172.60.159 - - [21/Mar/2026:03:33:52 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:52 AM
+1.172.60.159 - - [21/Mar/2026:03:33:52 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:52 AM
+1.172.60.159 - - [21/Mar/2026:03:33:52 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:52 AM
+1.172.60.159 - - [21/Mar/2026:03:33:53 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:53 AM
+1.172.60.159 - - [21/Mar/2026:03:33:53 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:53 AM
+1.172.60.159 - - [21/Mar/2026:03:33:53 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH FAILED]帳號不存在: iso | IP: 1.172.60.159 | 時間: 3/21/2026, 3:33:53 AM
+1.172.60.159 - - [21/Mar/2026:03:34:19 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 1.172.60.159 | 時間: 3/21/2026, 3:34:19 AM
+1.172.60.159 - - [21/Mar/2026:05:40:19 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 1.172.60.159 | 時間: 3/21/2026, 5:40:19 AM
+1.172.60.159 - - [21/Mar/2026:05:40:30 +0000] "POST /api/ai/ask HTTP/1.1" - - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [21/Mar/2026:05:58:06 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 192.168.50.1 | 時間: 3/21/2026, 5:58:06 AM
+101.8.241.158 - - [21/Mar/2026:05:59:10 +0000] "POST /api/auth/login HTTP/1.1" 200 28 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
+[AUTH FAILED]帳號不存在: damin | IP: 101.8.241.158 | 時間: 3/21/2026, 5:59:10 AM
+101.8.241.158 - - [21/Mar/2026:05:59:47 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 101.8.241.158 | 時間: 3/21/2026, 5:59:47 AM
+1.172.60.159 - - [21/Mar/2026:06:00:04 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 1.172.60.159 | 時間: 3/21/2026, 6:00:04 AM
