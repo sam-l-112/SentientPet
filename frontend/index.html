@@ -12,6 +12,11 @@
   <script>
     // 建立一個簡體 -> 台灣正體 的轉換器，全域可用
     window.toTraditional = OpenCC.Converter({ from: "cn", to: "tw" });
+
+    // 檢查登入狀態：若無 user 資訊，自動跳回登入頁
+    if (!localStorage.getItem("user")) {
+        window.location.href = "pages/login.html";
+    }
   </script>
 </head>
 <body>
@@ -50,7 +55,6 @@
       </button>
     </div>
   </div>
-  <a href="pages/login.html">GO to login</a>
 </div>
 
 <script src="js/chat.js"></script>
