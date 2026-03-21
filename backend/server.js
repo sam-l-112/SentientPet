@@ -37,9 +37,9 @@ app.get('/api/data', (req, res) => {
     res.json({ message: "回傳資料"})
 })
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', '../frontend/pages/login.html'))
-})
+// app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'dist', '../frontend/pages/login.html'))
+// })
 
 // app.get('/check-ip', (req, res => {
 //     const userIP = req.headers['X-Real-IP'] || req.ip
