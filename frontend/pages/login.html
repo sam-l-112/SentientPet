@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/login.css">
 </head>
-<body>
+<body class="login-page">
 <div class="login-container">
-    <h2>Login</h2>
+    <h2>登入</h2>
     <form id="loginForm">
     
         <div class="input-group">
@@ -24,7 +26,7 @@
         <p id="error-msg"></p>
     </form>
 </div>
-<a href="../index.html">回上一頁</a>
+<p class="login-back"><a href="../index.html">← 回上一頁</a></p>
 <!-- 套件工具 -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
