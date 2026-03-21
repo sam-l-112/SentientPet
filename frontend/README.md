@@ -7,8 +7,8 @@
 - 串接後端 AI API（`POST /api/ai/ask`），支援多輪對話歷史
 - AI 回覆自動過濾思考過程，只顯示最終答案
 - AI 回覆自動從簡體轉成繁體中文（使用 `opencc-js`）
-- 登入功能，串接後端驗證 API（`POST /api/auth/login`），成功後導向 Dashboard
-- Dashboard 頁面（取得使用者資料功能待後端 API 實作）
+- 登入功能，串接後端驗證 API（`POST /api/auth/login`），成功後導向 AI 聊天主介面 (`index.html`)
+- 首頁 (`index.html`) 加入登入狀態檢查，未登入會自動導回登入頁面
 
 ---
 
@@ -32,26 +32,21 @@ index.html           # 聊天介面主頁（入口）
 
 ## 頁面說明
 
-### `index.html` — 聊天介面（入口）
+### `index.html` — AI 聊天主介面
 
-應用程式的主入口，提供 AI 聊天 UI。
+應用程式的主要介面，提供 AI 聊天 UI。
 
-- 頁面載入後即可輸入訊息與 AI 對話
+- 頁面載入時會檢查登入狀態，未登入則自動跳轉至 `pages/login.html`
 - 訊息歷史保存於記憶體中（頁面重整後清空）
-- 頁面底部提供連結導向登入頁面
 
 ### `pages/login.html` — 登入頁面
 
 - 輸入帳號密碼後送出表單
 - 呼叫後端 `POST /api/auth/login`
-- 登入成功後自動跳轉至 `dashboard.html`
+- 登入成功後自動跳轉至 `index.html`
 - 登入失敗則在表單下方顯示錯誤訊息
 
-### `pages/dashboard.html` — Dashboard
-
-- 登入成功後的歡迎頁面
-- 提供「取得使用者資料」按鈕（待後端 `/api/auth/me` 實作後串接）
-- 提供登出連結，回到登入頁面
+**註：`pages/dashboard.html` 頁面目前已不再使用於前端導航流程中。**
 
 ---
 
@@ -68,11 +63,12 @@ index.html           # 聊天介面主頁（入口）
 
 - 監聽表單 submit 事件，防止頁面跳轉
 - 取得帳號密碼後，以 `fetch` 呼叫 `POST /api/auth/login`
-- 根據回傳的 `data.message` 判斷登入成功或失敗
+- 登入成功後，將使用者資訊存入 `localStorage`，並導向 `../index.html`
+- 根據回傳的 `data.message` 判斷登入成功或失敗，並顯示錯誤訊息
 
-### `dashboard.js` — Dashboard 邏輯
+### `dashboard.js` — (目前暫不使用)
 
-- 目前 `loadUser()` 為佔位函數，待後端 `/api/auth/me` 實作後串接
+- 此檔案目前已不直接參與前端的主要導航流程。
 
 ### 簡體轉繁體：`opencc-js`
 
@@ -111,10 +107,9 @@ index.html           # 聊天介面主頁（入口）
 
 ## 待辦事項
 
-1. **Dashboard 用戶資料**：後端實作 `GET /api/auth/me` 後，串接至 `dashboard.js`
-2. **登出功能**：實作 token 清除與登出導向邏輯
-3. **登入狀態保護**：Dashboard 頁面加入未登入時自動導向登入頁的判斷
-4. **聊天記錄持久化**：目前頁面重整後歷史清空，可考慮存入 localStorage 或資料庫
+1. **登出功能**：在 `index.html` 或其他頁面加入登出按鈕，清除 `localStorage` 中的使用者資訊，並導回 `login.html`。
+2. **聊天記錄持久化**：目前頁面重整後歷史清空，可考慮存入 `localStorage` 或資料庫。
+3. **Dashboard 頁面處理**：討論未來是否仍需 Dashboard 頁面，或將其功能合併到 `index.html`。
 
 ---
 
