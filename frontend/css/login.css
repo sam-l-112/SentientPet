@@ -1,5 +1,6 @@
-/* 登入頁專用（色票與基礎字型由 style.css 提供） */
+/* 登入頁 CSS：版面與互動樣式 */
 
+/* body.login-page：置中與背景漸層 */
 body.login-page {
   min-height: 100dvh;
   display: flex;
@@ -11,7 +12,9 @@ body.login-page {
     radial-gradient(ellipse 120% 80% at 50% -20%, var(--accent-lt), transparent 55%),
     var(--bg);
 }
+/* 說明：Flex 置中登入卡片，並疊加漸層背景效果。 */
 
+/* .login-container：登入卡片外觀 */
 .login-container {
   width: 100%;
   max-width: 380px;
@@ -21,7 +24,9 @@ body.login-page {
   border-radius: 20px;
   box-shadow: var(--shadow);
 }
+/* 說明：卡片寬度限制、圓角與陰影，形成分層視覺。 */
 
+/* .login-container h2：標題排版 */
 .login-container h2 {
   font-family: 'Lora', serif;
   font-size: 1.35rem;
@@ -30,26 +35,34 @@ body.login-page {
   margin-bottom: 24px;
   color: var(--text);
 }
+/* 說明：置中標題並保留與表單的間距。 */
 
+/* .login-container form：表單垂直排列 */
 .login-container form {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
+/* 說明：用等間距直向排列表單元素。 */
 
+/* .input-group：單組輸入間距 */
 .login-container .input-group {
-  display: flex;
+  display: flex; 
   flex-direction: column;
   gap: 6px;
 }
+/* 說明：label 與 input 的間距一致，版面更整齊。 */
 
+/* .input-group label：標籤文字樣式 */
 .login-container .input-group label {
   font-size: .8rem;
   font-weight: 500;
   color: var(--muted);
   letter-spacing: .02em;
 }
+/* 說明：小字、低對比標籤，提升閱讀。 */
 
+/* 輸入框（text/password）：共同樣式 */
 .login-container input[type="text"],
 .login-container input[type="password"] {
   width: 100%;
@@ -63,13 +76,17 @@ body.login-page {
   outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
+/* 說明：統一寬度、字體、圓角與過渡效果。 */
 
+/* 輸入框 :focus：聚焦回饋 */
 .login-container input[type="text"]:focus,
 .login-container input[type="password"]:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-lt);
 }
+/* 說明：聚焦時顯示主色邊框與外光。 */
 
+/* button[type="submit"]：主要送出按鈕 */
 .login-container button[type="submit"] {
   margin-top: 4px;
   padding: 12px 16px;
@@ -83,15 +100,21 @@ body.login-page {
   cursor: pointer;
   transition: background .2s, transform .1s;
 }
+/* 說明：主色按鈕，支援 hover/active 轉場。 */
 
+/* button[type="submit"]:hover：懸停狀態 */
 .login-container button[type="submit"]:hover {
   background: #b5603e;
 }
+/* 說明：滑鼠懸停時換深一點的顏色。 */
 
+/* button[type="submit"]:active：按下回饋 */
 .login-container button[type="submit"]:active {
   transform: scale(.98);
 }
+/* 說明：按下時縮小，強化點擊回饋。 */
 
+/* #error-msg：錯誤提示 */
 .login-container #error-msg {
   min-height: 1.25em;
   font-size: .85rem;
@@ -99,19 +122,26 @@ body.login-page {
   text-align: center;
   margin: 0;
 }
+/* 說明：用紅字顯示錯誤，並降低版面跳動。 */
 
+/* .login-back：返回連結區 */
 .login-back {
   margin-top: 20px;
   text-align: center;
 }
+/* 說明：與表單保持距離並置中顯示。 */
 
+/* .login-back a：連結文字樣式 */
 .login-back a {
   font-size: .88rem;
   color: var(--muted);
   text-decoration: none;
   transition: color .2s;
 }
+/* 說明：柔和連結文字並支援顏色過渡。 */
 
+/* .login-back a:hover：連結互動 */
 .login-back a:hover {
   color: var(--accent);
 }
+/* 說明：懸停時以 accent 顏色表示可點擊。 */
