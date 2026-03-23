@@ -10,10 +10,11 @@
   <!-- 簡體轉繁體：opencc-js（在前端強制把機器回覆轉成繁體中文） -->
   <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
   <script>
-    // 建立一個簡體 -> 台灣正體 的轉換器，全域可用
+    // 建立一個簡體 -> 繁體 的轉換器，全域可用
     window.toTraditional = OpenCC.Converter({ from: "cn", to: "tw" });
 
-    // 檢查登入狀態：若無 user 資訊，自動跳回登入頁
+    // 在頁面載入時檢查登入狀態
+    // 如果 localStorage 中沒有名為 "user" 的資料（代表未登入），則自動跳轉到登入頁面
     if (!localStorage.getItem("user")) {
         window.location.href = "pages/login.html";
     }
@@ -22,35 +23,45 @@
 <body>
 <div class="app">
 
-  <!-- HEADER -->
+  <!-- 應用程式的頂部標頭區塊 -->
   <header>
+    <!-- 使用者頭像的環狀裝飾 -->
     <div class="avatar-ring">
+      <!-- 頭像圖示，此處為一個 SVG 人形圖示 -->
       <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
     </div>
+    <!-- 標頭資訊，包含聊天名稱和狀態 -->
     <div class="header-info">
       <h1>AI聊天測試</h1>
+      <!-- 顯示線上狀態的綠色小圓點 -->
       <span><span class="status-dot"></span>線上</span>
     </div>
   </header>
 
-  <!-- MESSAGES -->
+  <!-- 訊息顯示區塊 -->
   <div class="messages" id="messages">
+    <!-- 歡迎訊息區塊，預設顯示，有訊息後隱藏 -->
     <div class="welcome" id="welcome">
+      <!-- 歡迎圖示，此處為一個 SVG 聊天氣泡圖示 -->
       <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
       <p>開始對話吧…</p>
     </div>
   </div>
 
-  <!-- INPUT -->
+  <!-- 輸入訊息的底部工具列 -->
   <div class="input-bar">
+    <!-- 輸入框的包裝容器 -->
     <div class="input-wrap">
+      <!-- 使用者輸入文字區域 -->
       <textarea
         id="userInput"
         rows="1"
         placeholder="輸入訊息…"
         maxlength="2000"
       ></textarea>
+      <!-- 送出訊息按鈕 -->
       <button class="send-btn" id="sendBtn">
+        <!-- 送出圖示，此處為一個 SVG 飛機圖示 -->
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
     </div>
