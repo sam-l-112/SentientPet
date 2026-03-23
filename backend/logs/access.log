@@ -118,3 +118,20 @@
 1.175.180.27 - - [23/Mar/2026:04:45:43 +0000] "POST /api/ai/ask HTTP/1.1" 200 2134 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.175.180.27 - - [23/Mar/2026:05:04:09 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 [AUTH SUCCESS]使用者: admin | IP: 1.175.180.27 | 時間: 3/23/2026, 5:04:09 AM
+27.52.30.53 - - [23/Mar/2026:06:53:55 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://210.70.254.110:2235/pages/login.html" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1"
+[AUTH SUCCESS]使用者: admin | IP: 27.52.30.53 | 時間: 3/23/2026, 6:53:55 AM
+27.52.30.53 - - [23/Mar/2026:06:54:09 +0000] "POST /api/ai/ask HTTP/1.1" 200 2003 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1"
+27.52.30.53 - - [23/Mar/2026:06:55:24 +0000] "POST /api/ai/ask HTTP/1.1" 200 1975 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Mobile/15E148 Safari/604.1"
+192.168.50.1 - - [23/Mar/2026:07:23:54 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 192.168.50.1 | 時間: 3/23/2026, 7:23:54 AM
+192.168.50.1 - - [23/Mar/2026:07:24:09 +0000] "POST /api/ai/ask HTTP/1.1" 200 1848 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:35:57 +0000] "POST /api/ai/ask HTTP/1.1" 200 88 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:36:19 +0000] "POST /api/ai/ask HTTP/1.1" 200 88 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:41:00 +0000] "POST /api/ai/ask HTTP/1.1" 500 63 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:41:24 +0000] "POST /api/ai/ask HTTP/1.1" 500 63 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:44:12 +0000] "POST /api/ai/ask HTTP/1.1" 200 91 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:44:55 +0000] "POST /api/ai/ask HTTP/1.1" 200 61 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:45:08 +0000] "POST /api/ai/ask HTTP/1.1" 200 100 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:47:49 +0000] "POST /api/ai/ask HTTP/1.1" 500 94 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:48:03 +0000] "POST /api/ai/ask HTTP/1.1" 200 61 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [23/Mar/2026:07:48:14 +0000] "POST /api/ai/ask HTTP/1.1" 200 97 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
