@@ -14,17 +14,43 @@
     <form id="loginForm">
     
         <div class="input-group">
-            <label>Username</label>
+            <label>使用者名稱</label>
             <input type="text" id="username" required>
         </div>
         <div class="input-group">
-            <label>Password</label>
+            <label>密碼</label>
             <input type="password" id="password" required>
         </div>
         <button type="submit">Login</button>
 
         <p id="error-msg"></p>
     </form>
+    <div class="register-link">
+        <p>還沒有帳號？ <a href="#" id="showRegister">註冊</a></p>
+    </div>
+</div>
+
+<div class="register-container" style="display:none;">
+    <h2>註冊</h2>
+    <form id="registerForm">
+        <div class="input-group">
+            <label>使用者名稱</label>
+            <input type="text" id="registerUsername" required>
+        </div>
+        <div class="input-group">
+            <label>密碼</label>
+            <input type="password" id="registerPassword" required>
+        </div>
+        <div class="input-group">
+            <label>確認密碼</label>
+            <input type="password" id="confirmPassword" required>
+        </div>
+        <button type="submit">註冊</button>
+        <p id="register-error-msg"></p>
+    </form>
+    <div class="login-link">
+        <p>已經有帳號？ <a href="#" id="showLogin">登入</a></p>
+    </div>
 </div>
 <!-- 套件工具 -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
