@@ -7,7 +7,8 @@
 - 串接後端 AI API（`POST /api/ai/ask`），支援多輪對話歷史
 - AI 回覆自動過濾思考過程，只顯示最終答案
 - AI 回覆自動從簡體轉成繁體中文（使用 `opencc-js`）
-- 登入功能，串接後端驗證 API（`POST /api/auth/login`），成功後導向 AI 聊天主介面 (`index.html`)
+- **登入功能**：串接後端驗證 API（`POST /api/auth/login`），成功後導向 AI 聊天主介面 (`index.html`)
+- **註冊功能**：新增註冊表單與頁面切換功能，將呼叫假設的後端註冊 API（`POST /api/auth/register`）
 - 首頁 (`index.html`) 加入登入狀態檢查，未登入會自動導回登入頁面
 
 ---
@@ -39,12 +40,19 @@ index.html           # 聊天介面主頁（入口）
 - 頁面載入時會檢查登入狀態，未登入則自動跳轉至 `pages/login.html`
 - 訊息歷史保存於記憶體中（頁面重整後清空）
 
-### `pages/login.html` — 登入頁面
+### `pages/login.html` — 登入與註冊頁面
 
-- 輸入帳號密碼後送出表單
-- 呼叫後端 `POST /api/auth/login`
-- 登入成功後自動跳轉至 `index.html`
-- 登入失敗則在表單下方顯示錯誤訊息
+- 整合登入表單與註冊表單，可透過連結互相切換顯示
+- **登入功能**：
+    - 輸入帳號密碼後送出表單
+    - 呼叫後端 `POST /api/auth/login`
+    - 登入成功後自動跳轉至 `index.html`
+    - 登入失敗則在表單下方顯示錯誤訊息
+- **註冊功能**：
+    - 提供使用者名稱、密碼與確認密碼輸入
+    - 密碼與確認密碼不符時會提示錯誤
+    - 呼叫假設的後端 `POST /api/auth/register` (需要 Sam 實作)
+    - 註冊成功後，提示使用者登入並自動切換回登入表單
 
 **註：`pages/dashboard.html` 頁面目前已不再使用於前端導航流程中。**
 
@@ -59,12 +67,13 @@ index.html           # 聊天介面主頁（入口）
 - `sanitizeAnswer()` 過濾 AI 回傳中的思考過程（`Thinking Process:` / `Final Choice:`），只顯示最終答案
 - 收到回覆後，若 `window.toTraditional` 存在，自動轉換為繁體中文再顯示
 
-### `login.js` — 登入邏輯
+### `login.js` — 登入與註冊邏輯
 
-- 監聽表單 submit 事件，防止頁面跳轉
-- 取得帳號密碼後，以 `fetch` 呼叫 `POST /api/auth/login`
-- 登入成功後，將使用者資訊存入 `localStorage`，並導向 `../index.html`
-- 根據回傳的 `data.message` 判斷登入成功或失敗，並顯示錯誤訊息
+- 整合登入與註冊功能，包含：
+    - 登入邏輯 (`login()`): 監聽登入表單提交，呼叫 `POST /api/auth/login`，處理登入成功後的 `localStorage` 儲存與頁面跳轉。
+    - 註冊邏輯 (`register()`): 監聽註冊表單提交，檢查密碼一致性，呼叫假設的 `POST /api/auth/register`，並處理註冊成功後的提示與頁面切換。
+- 提供 `showRegisterPanel()` 和 `showLoginPanel()` 函數，用於切換登入與註冊表單的顯示。
+- 監聽「註冊」與「登入」連結的點擊事件，以切換表單。
 
 ### `dashboard.js` — (目前暫不使用)
 
@@ -107,9 +116,10 @@ index.html           # 聊天介面主頁（入口）
 
 ## 待辦事項
 
-1. **登出功能**：在 `index.html` 或其他頁面加入登出按鈕，清除 `localStorage` 中的使用者資訊，並導回 `login.html`。
-2. **聊天記錄持久化**：目前頁面重整後歷史清空，可考慮存入 `localStorage` 或資料庫。
-3. **Dashboard 頁面處理**：討論未來是否仍需 Dashboard 頁面，或將其功能合併到 `index.html`。
+1. **後端註冊 API 實作**：請 Sam 在後端實作 `POST /api/auth/register` 端點，以支援前端的註冊功能。
+2. **登出功能**：在 `index.html` 或其他頁面加入登出按鈕，清除 `localStorage` 中的使用者資訊，並導回 `login.html`。
+3. **聊天記錄持久化**：目前頁面重整後歷史清空，可考慮存入 `localStorage` 或資料庫。
+4. **Dashboard 頁面處理**：討論未來是否仍需 Dashboard 頁面，或將其功能合併到 `index.html`。
 
 ---
 
