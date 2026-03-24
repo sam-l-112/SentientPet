@@ -1,4 +1,4 @@
-# SentientPet-AI
+# SentientPet
 
 ## Project Overview
 
