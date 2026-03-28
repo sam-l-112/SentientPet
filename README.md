@@ -166,4 +166,12 @@ npm start
 
 ---
 
+## pm2
+- Restart
+```bash
+pm2 reload server
+```
+
+---
+
 Happy building! If you'd like help expanding authentication, adding role-based access, or improving security, just say the word.
