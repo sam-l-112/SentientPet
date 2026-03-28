@@ -189,3 +189,12 @@
 [AUTH SUCCESS]使用者: admin | IP: 110.30.105.154 | 時間: 3/24/2026, 3:07:23 AM
 110.30.105.154 - - [24/Mar/2026:03:07:45 +0000] "POST /api/ai/ask HTTP/1.1" 200 61 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
 110.30.105.154 - - [24/Mar/2026:03:08:22 +0000] "POST /api/ai/ask HTTP/1.1" 200 148 "http://210.70.254.110:2235/index.html" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
+192.168.50.1 - - [24/Mar/2026:11:03:38 +0000] "POST /api/auth/login HTTP/1.1" 200 55 "http://192.168.50.150/" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
+[AUTH SUCCESS]使用者: admin | IP: 192.168.50.1 | 時間: 3/24/2026, 11:03:38 AM
+192.168.50.1 - - [24/Mar/2026:11:03:44 +0000] "POST /api/ai/ask HTTP/1.1" 200 67 "http://192.168.50.150/" "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:45:23 +0000] "POST /api/ai/ask HTTP/1.1" 200 61 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:45:55 +0000] "POST /api/ai/ask HTTP/1.1" 200 76 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:46:17 +0000] "POST /api/ai/ask HTTP/1.1" 200 76 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:46:33 +0000] "POST /api/ai/ask HTTP/1.1" 200 193 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:46:54 +0000] "POST /api/ai/ask HTTP/1.1" 200 121 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [25/Mar/2026:09:47:11 +0000] "POST /api/ai/ask HTTP/1.1" 200 235 "http://192.168.50.150/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"

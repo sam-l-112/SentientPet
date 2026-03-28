@@ -71,6 +71,99 @@ This section describes the development format, purpose, and function of each fil
 - **auth.js** (JavaScript format): Defines API routes for authentication endpoints, such as `/login`, `/register`, and `/logout`.
 - **chat.js** (JavaScript format): Defines API routes for chat functionality, such as sending messages or retrieving chat history.
 - **pet.js** (JavaScript format): Defines API routes for pet-related operations, such as creating or updating pet profiles.
+---
+## JWT 是什麼？
+
+**JWT = JSON Web Token**，是一種登入驗證的機制。
+
+---
+
+## 登入流程比較
+
+**傳統 Session 方式**
+```
+使用者登入 → 伺服器記住你 → 每次請求都查資料庫確認身份
+```
+
+**JWT 方式**
+```
+使用者登入 → 伺服器發一張「通行證」(Token) → 之後每次請求帶著這張通行證
+           → 伺服器驗證通行證就好，不用查資料庫
+```
+
+---
+
+## JWT 長什麼樣子
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxfQ.abc123xyz
+        │                      │                  │
+     Header               Payload             Signature
+   (加密方式)           (存放的資料)          (防偽簽名)
+```
+
+Payload 裡面存的就是你的資訊：
+```json
+{
+  "user_id": 1,
+  "username": "小明",
+  "exp": 1234567890
+}
+```
+
+---
+
+## JWT_SECRET 是什麼
+
+就是用來**產生防偽簽名的密鑰**，只有你的伺服器知道。
+
+```env
+JWT_SECRET=abc123xyz隨便打一串沒人猜得到的字
+```
+
+> ⚠️ 這串字絕對不能外洩，外洩的話別人可以偽造 Token 冒充任何使用者！
+
+---
+
+## 實際使用流程
+
+```
+1. 使用者登入
+   POST /api/auth/login { username, password }
+           ↓
+   伺服器驗證成功，用 JWT_SECRET 產生 Token
+   回傳 { token: "eyJhbG..." }
+
+2. 前端把 Token 存起來
+   localStorage.setItem('token', 'eyJhbG...')
+
+3. 之後每次 API 請求都帶上 Token
+   Header: Authorization: Bearer eyJhbG...
+           ↓
+   authMiddleware 驗證 Token 是否合法
+   合法 → 放行，並把 user_id 注入 req.user
+   不合法 → 回傳 401 請先登入
+```
+
+---
+
+## JWT_SECRET 怎麼設定
+
+隨便打一串夠長夠亂的字就好：
+
+```env
+JWT_SECRET=s3nt13nt_p3t_2025_super_secret_key_!@#
+```
+
+或是用終端機產生：
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+這樣會產生一串像這樣的隨機字串：
+```
+a3f8c2d1e9b4f7a0c5d2e8f1b6a3c9d4e7f2b5a8c1d6e3f0b7a4c2d9e6f3b0
+```
 
 ### services/ Directory
 - **aiService.js** (JavaScript format): Contains logic for integrating with AI services, such as processing chat inputs through an AI model for responses.
