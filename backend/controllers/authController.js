@@ -14,10 +14,10 @@ function writeLog(message) {
 exports.register = async (req, res) => {
     const { username, password, email } = req.body
 
- if (password.length < 6) {
+ if (password.length < 8) {
         return res.status(400).json({
             success: false,
-            message: '密碼至少需要 6 個字元'
+            message: '密碼至少需要 8 個字元'
         })
     }
 
