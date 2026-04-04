@@ -24,7 +24,10 @@ app.set('trust proxy', true)
 app.use(morgan('combined')) // console 輸出
 app.use(morgan('combined', { stream: accessLogStream })) 
 app.use(cors({
-    origin: process.env.FRONTENO_URL || 'http://192.168.50.150',
+    origin: [process.env.FRONTENO_URL || 
+    'http://192.168.50.150',
+    'http://210.70.254.110:2237',
+    ].filter(Boolean),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }))
