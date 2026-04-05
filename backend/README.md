@@ -165,5 +165,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 a3f8c2d1e9b4f7a0c5d2e8f1b6a3c9d4e7f2b5a8c1d6e3f0b7a4c2d9e6f3b0
 ```
 
+實務上 secret 建議使用較長且隨機的字串，例如：
+
+$$H = \text{SHA256}(\text{random\_string})$$
+
 ### services/ Directory
 - **aiService.js** (JavaScript format): Contains logic for integrating with AI services, such as processing chat inputs through an AI model for responses.

@@ -286,3 +286,23 @@
 1.172.32.216 - - [05/Apr/2026:06:54:08 +0000] "POST /api/ai/ask HTTP/1.1" 200 148 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:06:54:10 +0000] "OPTIONS /api/ai/ask HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:06:54:12 +0000] "POST /api/ai/ask HTTP/1.1" 200 94 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [05/Apr/2026:07:46:13 +0000] "POST /api/auth/login HTTP/1.1" 200 268 "http://210.70.254.110:2237/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS] 使用者: zhan | IP: 192.168.50.1 | 時間: 4/5/2026, 7:46:13 AM
+192.168.50.1 - - [05/Apr/2026:07:46:43 +0000] "POST /api/ai/ask HTTP/1.1" 200 135 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+192.168.50.1 - - [05/Apr/2026:07:46:51 +0000] "POST /api/ai/ask HTTP/1.1" 200 94 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:03:00 +0000] "OPTIONS /api/auth/login HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:03:00 +0000] "POST /api/auth/login HTTP/1.1" 200 268 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS] 使用者: zhan | IP: 1.172.32.216 | 時間: 4/5/2026, 8:03:00 AM
+1.172.32.216 - - [05/Apr/2026:08:03:24 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:03:24 +0000] "POST /api/ai/chat HTTP/1.1" 401 26 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:03:30 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:03:30 +0000] "POST /api/ai/chat HTTP/1.1" 401 26 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:07:53 +0000] "OPTIONS /api/auth/login HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:07:53 +0000] "POST /api/auth/login HTTP/1.1" 200 268 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS] 使用者: zhan | IP: 1.172.32.216 | 時間: 4/5/2026, 8:07:53 AM
+1.172.32.216 - - [05/Apr/2026:08:07:58 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:07:58 +0000] "POST /api/ai/chat HTTP/1.1" 401 26 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:13:21 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:13:21 +0000] "POST /api/ai/chat HTTP/1.1" 401 26 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:27:25 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:08:27:25 +0000] "POST /api/ai/chat HTTP/1.1" 401 26 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
