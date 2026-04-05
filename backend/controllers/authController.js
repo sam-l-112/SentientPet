@@ -1,5 +1,7 @@
 const fs = require("fs")
 const path = require("path")
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const userModel = require('../models/userModel')
 const logFilePath = path.join(__dirname, "../logs/access.log")
 
@@ -110,7 +112,7 @@ exports.login = async (req, res) => {
         // 4. 產生 JWT Token
         const token = jwt.sign(
             {
-                user_id:  user.user_id,
+                user_id:  user.id,
                 username: user.username
             },
             process.env.JWT_SECRET,

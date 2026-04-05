@@ -13,11 +13,11 @@ const pool = mariadb.createPool({
 // 連線測試 test connection 或 Check connection
 pool.getConnection()
     .then(conn => {
-        console.log(`✅ 資料庫連線成功！已連接到 ${process.env.DB_DATABASE}`)
+        console.log(`資料庫連線成功！已連接到 ${process.env.DB_DATABASE}`)
         conn.release()
     })
     .catch(err => {
-        console.error('❌ 資料庫連線失敗:', err.message)
+        console.error('資料庫連線失敗:', err.message)
     })
 
 module.exports = pool
