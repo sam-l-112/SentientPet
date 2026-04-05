@@ -51,7 +51,7 @@ async function callAPI(messages) {
   }
 
   // 連接後端的聊天 API 的函數
-  const url = "http://210.70.254.110:2235/api/ai/ask"; // 後端 AI 聊天 API 的端點 URL
+  const url = "http://210.70.254.110:2237/api/ai/ask";
 
   const res = await fetch(url, {
     method: "POST", // 使用 POST 方法發送請求
