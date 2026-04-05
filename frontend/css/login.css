@@ -1,6 +1,6 @@
-/* 登入頁 CSS：版面與互動樣式 */
+/* login.css — pastel blob aesthetic */
 
-/* body.login-page：置中與背景漸層 */
+/* ── LOGIN PAGE BODY ── */
 body.login-page {
   min-height: 100dvh;
   display: flex;
@@ -8,185 +8,213 @@ body.login-page {
   align-items: center;
   justify-content: center;
   padding: 24px 16px 32px;
-  background:
-    radial-gradient(ellipse 120% 80% at 50% -20%, var(--accent-lt), transparent 55%),
-    var(--bg);
+  background: #f8f4fc;
+  overflow: hidden;
+  position: relative;
 }
-/* 說明：Flex 置中登入卡片，並疊加漸層背景效果。 */
 
-/* .login-container：登入卡片外觀 */
-.login-container {
+/* Blob 裝飾背景 */
+body.login-page::before {
+  content: '';
+  position: fixed;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle at 40% 40%, #b8e0f7 0%, #a0d0f0 50%, transparent 75%);
+  top: -100px; left: -80px;
+  border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+  filter: blur(20px);
+  opacity: .6;
+  pointer-events: none;
+  animation: blobDrift 8s ease-in-out infinite alternate;
+}
+body.login-page::after {
+  content: '';
+  position: fixed;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle at 60% 60%, #f4b8d4 0%, #f0a0c8 55%, transparent 78%);
+  bottom: -80px; right: -60px;
+  border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%;
+  filter: blur(20px);
+  opacity: .55;
+  pointer-events: none;
+  animation: blobDrift 10s ease-in-out infinite alternate-reverse;
+}
+
+/* 黃色小 blob */
+body.login-page .blob-yellow {
+  position: fixed;
+  width: 240px; height: 220px;
+  background: radial-gradient(circle, #fcf0a0 0%, #f8e880 60%, transparent 80%);
+  bottom: 80px; left: -30px;
+  border-radius: 50% 40% 60% 30% / 40% 60% 40% 60%;
+  filter: blur(18px);
+  opacity: .55;
+  pointer-events: none;
+  animation: blobDrift 12s ease-in-out infinite alternate;
+}
+
+@keyframes blobDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(12px, -18px) scale(1.04); }
+}
+
+/* ── LOGIN CARD ── */
+.login-container,
+.register-container {
   width: 100%;
-  max-width: 380px;
-  padding: 32px 28px 28px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
+  max-width: 390px;
+  padding: 36px 32px 30px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(220,190,240,.25);
+  border-radius: 28px;
+  box-shadow: 0 8px 48px rgba(180,140,220,.15), 0 2px 16px rgba(180,140,220,.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+  z-index: 1;
+  animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
 }
-/* 說明：卡片寬度限制、圓角與陰影，形成分層視覺。 */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 
-/* .login-container h2：標題排版 */
-.login-container h2 {
-  font-family: 'Lora', serif;
-  font-size: 1.35rem;
+/* ── TITLE ── */
+.login-container h2,
+.register-container h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
   font-weight: 500;
   text-align: center;
-  margin-bottom: 24px;
-  color: var(--text);
+  margin-bottom: 28px;
+  color: #4a3f5c;
+  letter-spacing: -.01em;
 }
-/* 說明：置中標題並保留與表單的間距。 */
 
-/* .login-container form：表單垂直排列 */
+/* ── FORM ── */
 .login-container form,
 .register-container form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  align-items: center; /* 置中所有表單元素 */
+  gap: 16px;
+  align-items: center;
 }
-/* 說明：用等間距直向排列表單元素。 */
 
-/* .input-group：單組輸入間距 */
+/* ── INPUT GROUP ── */
 .login-container .input-group,
 .register-container .input-group {
-  display: flex; 
-  flex-direction: row; /* 改為水平排列 */
-  align-items: center; /* 垂直置中 */
-  gap: 12px; /* 調整標籤與輸入框的間距 */
-  width: 100%; 
-  max-width: 380px; /* 讓輸入組可以稍微寬一點，以容納標籤 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  max-width: 380px;
 }
-/* 說明：label 與 input 的間距一致，版面更整齊。 */
 
-/* .input-group label：標籤文字樣式 */
 .login-container .input-group label,
 .register-container .input-group label {
-  font-size: .9rem;
-  font-weight: 500;
-  color: var(--text); /* 讓標籤更明顯 */
+  font-size: .85rem;
+  font-weight: 600;
+  color: #a89bbf;
   letter-spacing: .02em;
-  flex-shrink: 0; /* 確保標籤不會被壓縮 */
-  width: 90px; /* 固定標籤寬度 */
-  text-align: right; /* 標籤文字靠右對齊 */
+  flex-shrink: 0;
+  width: 80px;
+  text-align: left;
 }
-/* 說明：小字、低對比標籤，提升閱讀。 */
 
-/* 輸入框（text/password）：共同樣式 */
+/* ── INPUTS ── */
 .login-container input[type="text"],
 .login-container input[type="password"],
 .register-container input[type="text"],
 .register-container input[type="password"] {
   width: 100%;
-  padding: 11px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .95rem;
-  color: var(--text);
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
+  padding: 11px 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .93rem;
+  color: #4a3f5c;
+  background: rgba(255,255,255,.9);
+  border: 1.5px solid rgba(210,185,235,.35);
+  border-radius: 14px;
   outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
-/* 說明：統一寬度、字體、圓角與過渡效果。 */
-
-/* 輸入框 :focus：聚焦回饋 */
 .login-container input[type="text"]:focus,
 .login-container input[type="password"]:focus,
 .register-container input[type="text"]:focus,
 .register-container input[type="password"]:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-lt);
+  border-color: rgba(232,160,191,.65);
+  box-shadow: 0 0 0 3px rgba(232,160,191,.15);
 }
-/* 說明：聚焦時顯示主色邊框與外光。 */
 
-/* button[type="submit"]：主要送出按鈕 */
+/* ── SUBMIT BUTTON ── */
 .login-container button[type="submit"],
 .register-container button[type="submit"] {
-  margin-top: 4px;
+  margin-top: 6px;
   padding: 12px 16px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Nunito', sans-serif;
   font-size: .95rem;
-  font-weight: 500;
+  font-weight: 700;
   color: #fff;
-  background: var(--accent);
+  background: linear-gradient(135deg, #f0b0cc 0%, #e890b8 100%);
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: background .2s, transform .1s;
-  width: 100%; /* 確保按鈕佔滿可用寬度 */
-  max-width: 300px; /* 限制按鈕的最大寬度，與輸入框對齊 */
+  transition: opacity .2s, transform .1s, box-shadow .2s;
+  width: 100%;
+  max-width: 300px;
+  box-shadow: 0 4px 20px rgba(240,140,180,.35);
+  letter-spacing: .02em;
 }
-/* 說明：主色按鈕，支援 hover/active 轉場。 */
-
-/* button[type="submit"]:hover：懸停狀態 */
 .login-container button[type="submit"]:hover,
 .register-container button[type="submit"]:hover {
-  background: #b5603e;
+  opacity: .9;
+  box-shadow: 0 6px 24px rgba(240,140,180,.45);
 }
-/* 說明：滑鼠懸停時換深一點的顏色。 */
-
-/* button[type="submit"]:active：按下回饋 */
 .login-container button[type="submit"]:active,
 .register-container button[type="submit"]:active {
-  transform: scale(.98);
+  transform: scale(.97);
 }
-/* 說明：按下時縮小，強化點擊回饋。 */
 
-/* #error-msg：錯誤提示 */
+/* ── ERROR MSG ── */
 .login-container #error-msg,
 .register-container #register-error-msg {
-  min-height: 1.25em;
-  font-size: .85rem;
-  color: #c44;
+  min-height: 1.2em;
+  font-size: .82rem;
+  color: #e07090;
   text-align: center;
   margin: 0;
-  width: 100%; /* 確保錯誤訊息佔滿可用寬度 */
-  max-width: 300px; /* 限制錯誤訊息的最大寬度，與輸入框對齊 */
+  width: 100%;
+  max-width: 300px;
 }
-/* 說明：用紅字顯示錯誤，並降低版面跳動。 */
 
-/* 註冊/登入連結區 */
+/* ── LINKS ── */
 .register-link, .login-link {
-  margin-top: 15px; /* 與上方表單保持間距 */
+  margin-top: 16px;
   text-align: center;
 }
-
-/* 連結文字樣式 */
 .register-link p, .login-link p {
-  font-size: .88rem;
-  color: var(--muted);
+  font-size: .85rem;
+  color: #a89bbf;
 }
-
 .register-link a, .login-link a {
-  color: var(--accent);
+  color: #d080b0;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
   transition: color .2s;
 }
-
 .register-link a:hover, .login-link a:hover {
-  color: #b5603e;
+  color: #e890b8;
 }
 
-/* .login-back：返回連結區 */
 .login-back {
   margin-top: 20px;
   text-align: center;
 }
-/* 說明：與表單保持距離並置中顯示。 */
-
-/* .login-back a：連結文字樣式 */
 .login-back a {
-  font-size: .88rem;
-  color: var(--muted);
+  font-size: .85rem;
+  color: #a89bbf;
   text-decoration: none;
   transition: color .2s;
 }
-/* 說明：柔和連結文字並支援顏色過渡。 */
-
-/* .login-back a:hover：連結互動 */
 .login-back a:hover {
-  color: var(--accent);
+  color: #d080b0;
 }
-/* 說明：懸停時以 accent 顏色表示可點擊。 */
