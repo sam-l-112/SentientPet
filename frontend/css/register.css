@@ -1,63 +1,9 @@
 /* ════════════════════════════════════════
-   login.css — 登入頁專屬樣式
+   register.css — 註冊頁專屬樣式
    ════════════════════════════════════════ */
 
-/* ── 頁面背景 ── */
-body.login-page {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px 32px;
-  background: #f8f4fc;
-  overflow: hidden;
-  position: relative;
-}
-
-/* ── Blob 裝飾背景 ── */
-body.login-page::before {
-  content: '';
-  position: fixed;
-  width: 420px; height: 420px;
-  background: radial-gradient(circle at 40% 40%, #b8e0f7 0%, #a0d0f0 50%, transparent 75%);
-  top: -100px; left: -80px;
-  border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
-  filter: blur(20px);
-  opacity: .6;
-  pointer-events: none;
-  animation: blobDrift 8s ease-in-out infinite alternate;
-}
-body.login-page::after {
-  content: '';
-  position: fixed;
-  width: 360px; height: 360px;
-  background: radial-gradient(circle at 60% 60%, #f4b8d4 0%, #f0a0c8 55%, transparent 78%);
-  bottom: -80px; right: -60px;
-  border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%;
-  filter: blur(20px);
-  opacity: .55;
-  pointer-events: none;
-  animation: blobDrift 10s ease-in-out infinite alternate-reverse;
-}
-body.login-page .blob-yellow {
-  position: fixed;
-  width: 240px; height: 220px;
-  background: radial-gradient(circle, #fcf0a0 0%, #f8e880 60%, transparent 80%);
-  bottom: 80px; left: -30px;
-  border-radius: 50% 40% 60% 30% / 40% 60% 40% 60%;
-  filter: blur(18px);
-  opacity: .55;
-  pointer-events: none;
-  animation: blobDrift 12s ease-in-out infinite alternate;
-}
-@keyframes blobDrift {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(12px, -18px) scale(1.04); }
-}
-
-/* ── 登入卡片 ── */
-.login-container {
+/* ── 註冊卡片 ── */
+.register-container {
   width: 100%;
   max-width: 390px;
   padding: 36px 32px 30px;
@@ -71,13 +17,9 @@ body.login-page .blob-yellow {
   z-index: 1;
   animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
 }
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(20px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
 
 /* ── 標題 ── */
-.login-container h2 {
+.register-container h2 {
   font-family: 'Playfair Display', serif;
   font-size: 1.5rem;
   font-weight: 500;
@@ -88,7 +30,7 @@ body.login-page .blob-yellow {
 }
 
 /* ── 表單 ── */
-.login-container form {
+.register-container form {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -96,7 +38,7 @@ body.login-page .blob-yellow {
 }
 
 /* ── 輸入組 ── */
-.login-container .input-group {
+.register-container .input-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -104,7 +46,7 @@ body.login-page .blob-yellow {
   width: 100%;
   max-width: 380px;
 }
-.login-container .input-group label {
+.register-container .input-group label {
   font-size: .85rem;
   font-weight: 600;
   color: #a89bbf;
@@ -113,8 +55,8 @@ body.login-page .blob-yellow {
 }
 
 /* ── 輸入框 ── */
-.login-container input[type="text"],
-.login-container input[type="password"] {
+.register-container input[type="text"],
+.register-container input[type="password"] {
   width: 100%;
   padding: 11px 16px;
   font-family: 'Nunito', sans-serif;
@@ -126,14 +68,14 @@ body.login-page .blob-yellow {
   outline: none;
   transition: border-color .2s, box-shadow .2s;
 }
-.login-container input[type="text"]:focus,
-.login-container input[type="password"]:focus {
+.register-container input[type="text"]:focus,
+.register-container input[type="password"]:focus {
   border-color: rgba(232,160,191,.65);
   box-shadow: 0 0 0 3px rgba(232,160,191,.15);
 }
 
 /* ── 送出按鈕 ── */
-.login-container button[type="submit"] {
+.register-container button[type="submit"] {
   margin-top: 6px;
   padding: 12px 16px;
   font-family: 'Nunito', sans-serif;
@@ -150,16 +92,16 @@ body.login-page .blob-yellow {
   box-shadow: 0 4px 20px rgba(240,140,180,.35);
   letter-spacing: .02em;
 }
-.login-container button[type="submit"]:hover {
+.register-container button[type="submit"]:hover {
   opacity: .9;
   box-shadow: 0 6px 24px rgba(240,140,180,.45);
 }
-.login-container button[type="submit"]:active {
+.register-container button[type="submit"]:active {
   transform: scale(.97);
 }
 
 /* ── 錯誤訊息 ── */
-.login-container #error-msg {
+.register-container #register-error-msg {
   min-height: 1.2em;
   font-size: .82rem;
   color: #e07090;
@@ -169,21 +111,21 @@ body.login-page .blob-yellow {
   max-width: 300px;
 }
 
-/* ── 切換到註冊的連結 ── */
-.register-link {
+/* ── 切換回登入的連結 ── */
+.login-link {
   margin-top: 16px;
   text-align: center;
 }
-.register-link p {
+.login-link p {
   font-size: .85rem;
   color: #a89bbf;
 }
-.register-link a {
+.login-link a {
   color: #d080b0;
   text-decoration: none;
   font-weight: 700;
   transition: color .2s;
 }
-.register-link a:hover {
+.login-link a:hover {
   color: #e890b8;
 }
