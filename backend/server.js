@@ -26,6 +26,7 @@ app.use(morgan('combined', { stream: accessLogStream }))
 app.use(cors({
     origin: [
         process.env.FRONTEND_URL, 
+        process.env.FRONTEND_URL_LH,
         process.env.FRONTEND_URL_NW,
         process.env.FRONTEND_URL_I,
     ].filter(Boolean),
