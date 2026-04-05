@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI 小寵物主畫面</title>
+    <link rel="stylesheet" type="text/css" href="css/home.css">
+</head>
+<body>
+    <div class="pet-container">
+        <img id="pet-background" src="" alt="小寵物背景">
+        <div class="chat-box">
+            <p id="chat-text">你好！</p>
+        </div>
+        <button id="chat-button">開啟聊天視窗</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedPet = localStorage.getItem('selectedPet');
+            const petBackground = document.getElementById('pet-background');
+            const chatButton = document.getElementById('chat-button');
+
+            if (selectedPet) {
+                petBackground.src = `img/${selectedPet}.png`;
+            }
+
+            chatButton.addEventListener('click', function() {
+                window.open('index.html', '_blank', 'width=600,height=400');
+            });
+        });
+    </script>
+</body>
+</html>
