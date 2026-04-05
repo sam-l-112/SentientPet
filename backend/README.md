@@ -169,5 +169,26 @@ a3f8c2d1e9b4f7a0c5d2e8f1b6a3c9d4e7f2b5a8c1d6e3f0b7a4c2d9e6f3b0
 
 $$H = \text{SHA256}(\text{random\_string})$$
 
+---
+Dockerfile (用於 Node.js + PM2)
+在你的專案根目錄建立 Dockerfile，確保 PM2 以 runtime 模式執行，這樣容器才不會自動退出
+
+```bash
+FROM node:18
+
+# 安裝 PM2
+RUN npm install pm2 -g
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# 使用 pm2-runtime 啟動，這專為 Docker 設計
+CMD ["pm2-runtime", "start", "app.js", "--name", "sentient-pet"]
+```
+
 ### services/ Directory
 - **aiService.js** (JavaScript format): Contains logic for integrating with AI services, such as processing chat inputs through an AI model for responses.
