@@ -20,42 +20,81 @@ exports.callAI = async (messages, systemPrompt = null) => {
         ...messages
     ]
 
-    const response = await axios.post(
-        process.env.HF_MODEL_URL,
-        {
-            model:       process.env.HF_MODEL_NAME,
-            messages:    fullMessages,
-            max_tokens:  500,
-            temperature: 0.7
-        },
-        {
-            headers: {
-                'Authorization': `Bearer ${process.env.HF_TOKEN}`,
-                'Content-Type':  'application/json'
+    // 定義模型列表：先 Gemini，再 Qwen
+    const models = [
+        { name: process.env.HF_MODEL_NAME_GEMINI, label: 'Gemini' },
+        { name: process.env.HF_MODEL_NAME_QWEN, label: 'Qwen' }
+    ]
+
+    let lastError = null
+
+    for (const model of models) {
+        try {
+            console.log(`嘗試使用 ${model.label} 模型...`)
+
+            const response = await axios.post(
+                process.env.HF_MODEL_URL,
+                {
+                    model:       model.name,
+                    messages:    fullMessages,
+                    max_tokens:  500,
+                    temperature: 0.7
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${process.env.HF_TOKEN}`,
+                        'Content-Type':  'application/json'
+                    },
+                    timeout: 30000 // 30 秒超時
+                }
+            )
+
+            console.log(`${model.label} 回傳成功:`, JSON.stringify(response.data, null, 2))
+
+            // 安全取值
+            const choice  = response.data?.choices?.[0] || {}
+            const message = choice.message || {}
+
+            let aiAnswer = message.content || ''
+
+            // 有些模型會把內容放在 reasoning_content
+            if (!aiAnswer && message.reasoning_content) {
+                aiAnswer = message.reasoning_content
             }
+
+            // 過濾 <think> 標籤（DeepSeek 等模型會產生）
+            aiAnswer = aiAnswer.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+
+            // 最後防呆
+            if (!aiAnswer) {
+                aiAnswer = '主人，我剛才發呆了一下，沒聽清楚呢！喵～'
+            }
+
+            console.log(`${model.label} 成功回覆`)
+            return aiAnswer
+
+        } catch (error) {
+            console.error(`${model.label} 失敗:`, error.message)
+            lastError = error
+
+            // 如果是網路錯誤或超時，繼續嘗試下一個模型
+            if (error.code === 'ECONNABORTED' || error.code === 'ENOTFOUND') {
+                console.log(`網路問題，切換到下一個模型...`)
+                continue
+            }
+
+            // 如果是 API 錯誤（4xx/5xx），也繼續嘗試
+            if (error.response && error.response.status >= 400) {
+                console.log(`API 錯誤 ${error.response.status}，切換到下一個模型...`)
+                continue
+            }
+
+            // 其他錯誤直接拋出
+            throw error
         }
-    )
-
-    console.log('HF 原始回傳:', JSON.stringify(response.data, null, 2))
-
-    // 安全取值
-    const choice  = response.data?.choices?.[0] || {}
-    const message = choice.message || {}
-
-    let aiAnswer = message.content || ''
-
-    // 有些模型會把內容放在 reasoning_content
-    if (!aiAnswer && message.reasoning_content) {
-        aiAnswer = message.reasoning_content
     }
 
-    // 過濾 <think> 標籤（DeepSeek 等模型會產生）
-    aiAnswer = aiAnswer.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
-
-    // 最後防呆
-    if (!aiAnswer) {
-        aiAnswer = '主人，我剛才發呆了一下，沒聽清楚呢！喵～'
-    }
-
-    return aiAnswer
+    // 所有模型都失敗了
+    console.error('所有模型都失敗了')
+    throw lastError || new Error('所有 AI 模型都無法使用')
 }
