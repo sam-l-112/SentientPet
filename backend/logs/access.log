@@ -235,3 +235,5 @@
 111.254.46.210 - - [04/Apr/2026:14:25:29 +0000] "OPTIONS /api/auth/register HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:05:42:59 +0000] "OPTIONS /api/auth/login HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:05:43:27 +0000] "OPTIONS /api/auth/register HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:05:49:32 +0000] "OPTIONS /api/auth/login HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+1.172.32.216 - - [05/Apr/2026:05:49:32 +0000] "POST /api/auth/login HTTP/1.1" 404 154 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
