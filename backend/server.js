@@ -17,6 +17,9 @@ const accessLogStream = fs.createWriteStream(
     path.join(logDir, 'access.log'), { flags: 'a' }
 )
 
+// -- 數據庫連接
+const pool = require('./config/database')
+
 // -- set 基本設定
 app.set('trust proxy', true)
 
