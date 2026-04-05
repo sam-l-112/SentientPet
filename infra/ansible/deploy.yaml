@@ -1,0 +1,58 @@
+---
+- name: 部署 SentientPet 完整環境
+  hosts: webservers
+  become: yes  # 使用 sudo 權限
+  vars:
+    project_root: "/home/prometheus/project"
+    repo_url: "https://github.com/sam-l-112/SentientPet.git"
+    docker_compose_path: "{{ project_root }}/docker-compose.yml"
+
+  tasks:
+    - name: 1. 檢查並安裝必要的系統套件
+      apt:
+        name: [git, curl, docker.io, docker-compose]
+        state: present
+        update_cache: yes
+
+    - name: 2. 確保專案根目錄存在且權限正確
+      file:
+        path: "{{ project_root }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: 3. 拉取最新的 GitHub 程式碼
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ project_root }}"
+        version: main  # 或是指定的 branch
+        force: yes     # 如果遠端有更動，強制覆蓋本地修改
+      register: git_result
+
+    - name: 4. 建立 Log 專用目錄 (確保容器外層有地方寫入)
+      file:
+        path: "{{ project_root }}/logs/{{ item }}"
+        state: directory
+        mode: '0777'
+      loop:
+        - nginx
+        - pm2
+        - mariadb
+
+    - name: 5. 複製環境變數檔案 (如果有的話)
+      copy:
+        src: ../../backend/.env.production
+        dest: "{{ project_root }}/backend/.env"
+        mode: '0600'
+      ignore_errors: yes # 如果你還沒建立 .env 則跳過
+
+    - name: 6. 重新啟動 Docker 服務
+      shell: |
+        cd {{ project_root }}
+        docker-compose down
+        docker-compose up -d --build
+      when: git_result.changed # 只有當程式碼有更新時才重啟，避免無謂的斷線
+
+    - name: 7. 清理過期的 Docker 映像檔 (節省空間)
+      shell: docker image prune -f

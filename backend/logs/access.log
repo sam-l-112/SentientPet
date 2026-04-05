@@ -484,3 +484,4 @@
 1.172.32.216 - - [05/Apr/2026:15:27:10 +0000] "POST /api/ai/session HTTP/1.1" 201 52 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:15:27:10 +0000] "OPTIONS /api/ai/chat HTTP/1.1" 204 0 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 1.172.32.216 - - [05/Apr/2026:15:27:10 +0000] "POST /api/ai/chat HTTP/1.1" 500 122 "http://127.0.0.1:5500/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
+[AUTH SUCCESS] 使用者: zhan | IP: 1.172.32.216 | 時間: 4/5/2026, 5:07:49 PM

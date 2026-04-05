@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MariaDB 
+  db: 
+    image: mariadb:10.6
+    container_name: sentient_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: sentient_root_pass  # 建議換掉
+      MYSQL_DATABASE: sentient_pet
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+      - ./logs/mariadb:/var/log/mysql
+      # 建議：預設初始化 SQL 放在這裡，啟動時會自動執行
+      - ./infra/mariadb/init:/docker-entrypoint-initdb.d 
+    networks:
+      - sentient_net
+
+  # Node.js (使用 PM2)
+  app: 
+    build: 
+      context: ./backend             # 指向 backend 資料夾
+      dockerfile: Dockerfile
+    container_name: sentient_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db                    # 這裡直接寫服務名稱 db
+      DB_USER: root
+      DB_PASS: sentient_root_pass
+      NODE_ENV: production
+    volumes:
+      - ./backend:/usr/src/app       # 掛載 backend 源碼
+      - ./logs/node:/root/.pm2/logs  # PM2 日誌
+    networks:
+      - sentient_net
+
+  # Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: sentient_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf # 映射設定檔
+      - ./frontend:/usr/share/nginx/html                         # 映射前端檔案
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - sentient_net
+
+networks:
+  sentient_net:
+    driver: bridge
