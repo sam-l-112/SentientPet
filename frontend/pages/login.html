@@ -1,72 +1,190 @@
 <!DOCTYPE html>
+<!--
+    login.html — 登入 / 註冊頁面
+    ============================
+    這個頁面同時包含「登入表單」和「註冊表單」兩個區塊。
+    預設顯示登入表單，點擊「註冊」連結後會切換成註冊表單，
+    兩個表單之間的切換完全由 login.js 用 JS 控制顯示/隱藏，
+    不會重新載入頁面。
+-->
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <!-- viewport：讓手機版畫面正確縮放，不要自動放大 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+ 
+    <!-- Google Fonts：Lora 用於標題（serif 感），DM Sans 用於內文（現代感） -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet"
+    />
+ 
+    <!-- 全站共用樣式（顏色變數、重置等） -->
     <link rel="stylesheet" href="../css/style.css">
+    <!-- 登入頁專屬樣式（卡片、輸入框、按鈕等） -->
     <link rel="stylesheet" href="../css/login.css">
 </head>
+ 
 <body class="login-page">
-<!-- 登入表單容器 -->
+<!--
+    body.login-page：login.css 中針對這個 class 設定了
+    min-height: 100dvh + flex 置中，讓卡片永遠在畫面正中間
+-->
+ 
+<!-- ════════════════════════════════════════════
+     登入表單容器
+     預設可見，點「註冊」連結後由 JS 隱藏
+     ════════════════════════════════════════════ -->
 <div class="login-container">
     <h2>登入</h2>
+ 
+    <!--
+        id="loginForm"：login.js 會監聽這個表單的 submit 事件。
+        使用 submit 事件而非直接監聽 button click，
+        這樣使用者按 Enter 也能觸發送出。
+    -->
     <form id="loginForm">
+ 
         <!-- 使用者名稱輸入組 -->
         <div class="input-group">
             <label>使用者名稱</label>
+            <!--
+                id="username"：login.js 的 login() 函式會透過
+                document.getElementById("username").value 取得這個值
+            -->
             <input type="text" id="username" required>
         </div>
+ 
         <!-- 密碼輸入組 -->
         <div class="input-group">
             <label>密碼</label>
+            <!--
+                type="password"：瀏覽器會自動把輸入內容顯示為圓點，
+                防止旁人偷看密碼
+            -->
             <input type="password" id="password" required>
         </div>
-        <!-- 登入按鈕 -->
+ 
+        <!-- 登入送出按鈕 -->
         <button type="submit">登入</button>
-        <!-- 登入錯誤訊息顯示區 -->
+ 
+        <!--
+            id="error-msg"：登入失敗時，login.js 會把後端回傳的
+            錯誤訊息（例如「帳號或密碼錯誤」）填入這裡顯示給使用者
+        -->
         <p id="error-msg"></p>
     </form>
-    <!-- 註冊連結區 -->
+ 
+    <!-- 切換到註冊表單的連結區 -->
     <div class="register-link">
+        <!--
+            id="showRegister"：login.js 監聽這個連結的 click 事件，
+            點擊後呼叫 showRegisterPanel() 隱藏登入、顯示註冊
+        -->
         <p>還沒有帳號？ <a href="#" id="showRegister">註冊</a></p>
     </div>
 </div>
-
-<!-- 註冊表單容器 (預設隱藏) -->
+ 
+ 
+<!-- ════════════════════════════════════════════
+     註冊表單容器
+     預設隱藏（style="display:none"），
+     點「註冊」連結後由 JS 切換為可見
+     ════════════════════════════════════════════ -->
 <div class="register-container" style="display:none;">
     <h2>註冊</h2>
+ 
+    <!--
+        id="registerForm"：login.js 會監聽這個表單的 submit 事件，
+        觸發後呼叫 register() 函式
+    -->
     <form id="registerForm">
-        <!-- 註冊使用者名稱輸入組 -->
+ 
+        <!-- 使用者名稱輸入組 -->
         <div class="input-group">
             <label>使用者名稱</label>
+            <!--
+                id="registerUsername"：register() 函式取值用，
+                後端會檢查是否已被其他人使用（UNIQUE 限制）
+            -->
             <input type="text" id="registerUsername" required>
         </div>
-        <!-- 註冊密碼輸入組 -->
+ 
+        <!-- 電子郵件輸入組 -->
+        <div class="input-group">
+            <label>電子郵件</label>
+            <!--
+                ✅ 這個欄位是修正後新增的，原本程式碼沒有。
+                後端 authController.js 的 register() 需要 username、email、password 三個欄位，
+                缺少 email 會因為資料庫的 NOT NULL 限制而讓註冊失敗。
+                type="email"：瀏覽器會自動驗證格式（必須含有 @ 符號），
+                格式不對就不讓表單送出。
+            -->
+            <input type="email" id="registerEmail" required>
+        </div>
+ 
+        <!-- 密碼輸入組 -->
         <div class="input-group">
             <label>密碼</label>
+            <!--
+                後端要求密碼至少 8 個字元，
+                login.js 的 register() 函式會在送出前先在前端檢查，
+                不需要等後端回應才告知使用者
+            -->
             <input type="password" id="registerPassword" required>
         </div>
+ 
         <!-- 確認密碼輸入組 -->
         <div class="input-group">
             <label>確認密碼</label>
+            <!--
+                這個欄位的值不會送到後端，
+                只是在前端讓使用者再輸入一次，
+                login.js 的 register() 函式會比對這兩個密碼是否一致
+            -->
             <input type="password" id="confirmPassword" required>
         </div>
-        <!-- 註冊按鈕 -->
+ 
+        <!-- 註冊送出按鈕 -->
         <button type="submit">註冊</button>
-        <!-- 註冊錯誤訊息顯示區 -->
+ 
+        <!--
+            id="register-error-msg"：
+            前端驗證失敗（密碼不符、未填欄位等）
+            或後端回傳失敗（帳號已存在、信箱已使用等）
+            都會把錯誤訊息填入這裡
+        -->
         <p id="register-error-msg"></p>
     </form>
-    <!-- 登入連結區 -->
+ 
+    <!-- 切換回登入表單的連結區 -->
     <div class="login-link">
+        <!--
+            id="showLogin"：login.js 監聽點擊後呼叫 showLoginPanel()，
+            把畫面切回登入表單
+        -->
         <p>已經有帳號？ <a href="#" id="showLogin">登入</a></p>
     </div>
 </div>
-
-<!-- 外部套件與腳本引入 -->
+ 
+ 
+<!-- ════════════════════════════════════════════
+     外部腳本引入
+     ════════════════════════════════════════════ -->
+ 
+<!--
+    axios CDN：雖然目前 login.js 改用原生 fetch()，
+    保留這行是為了之後其他頁面可能用到，也不影響功能
+-->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+ 
+<!--
+    login.js：放在 /body 前面，確保上面的 DOM 元素
+    （loginForm、registerForm 等）都已經載入完畢，
+    才能讓 JS 成功用 getElementById 找到它們
+-->
 <script src="../js/login.js"></script>
+ 
 </body>
 </html>
