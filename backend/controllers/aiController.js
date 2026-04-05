@@ -44,7 +44,7 @@ exports.createSession = async (req, res) => {
     }
 
     try {
-        const [result] = await pool.query(
+        const result = await pool.query(
             'INSERT INTO chat_sessions (user_id, title) VALUES (?, ?)',
             [user_id, title || '新對話']
         )
@@ -52,7 +52,7 @@ exports.createSession = async (req, res) => {
         res.status(201).json({
             success: true,
             message: '建立成功',
-            cs_id:   result.insertId
+            cs_id:   Number(result.insertId)
         })
     } catch (err) {
         console.error(err)
