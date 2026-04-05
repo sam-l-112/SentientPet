@@ -65,7 +65,7 @@ exports.getSessions = async (req, res) => {
     const user_id = req.user.user_id
 
     try {
-        const [sessions] = await pool.query(
+        const sessions = await pool.query(
             `SELECT cs_id, title, created_at
              FROM chat_sessions
              WHERE user_id = ?
@@ -90,7 +90,7 @@ exports.chat = async (req, res) => {
 
     try {
         // 確認 session 屬於此使用者
-        const [session] = await pool.query(
+        const session = await pool.query(
             'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
             [cs_id, user_id]
         )
@@ -105,7 +105,7 @@ exports.chat = async (req, res) => {
         )
 
         // 2. 取得歷史訊息（最近 20 則，避免 token 超限）
-        const [history] = await pool.query(
+        const history = await pool.query(
             `SELECT role, content FROM messages
              WHERE cs_id = ?
              ORDER BY created_at ASC
@@ -114,7 +114,7 @@ exports.chat = async (req, res) => {
         )
 
         // 3. 取得使用者長期記憶
-        const [memories] = await pool.query(
+        const memories = await pool.query(
             `SELECT content, type FROM memories
              WHERE user_id = ?
              ORDER BY created_at DESC
@@ -166,7 +166,7 @@ exports.getHistory = async (req, res) => {
     const user_id   = req.user.user_id
 
     try {
-        const [session] = await pool.query(
+        const session = await pool.query(
             'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
             [cs_id, user_id]
         )
@@ -174,7 +174,7 @@ exports.getHistory = async (req, res) => {
             return res.status(403).json({ success: false, message: '無權限存取此對話' })
         }
 
-        const [messages] = await pool.query(
+        const messages = await pool.query(
             `SELECT mes_id, role, content, created_at
              FROM messages
              WHERE cs_id = ?
