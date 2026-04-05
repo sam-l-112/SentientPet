@@ -40,6 +40,9 @@ app.use(express.json())
 const authRoutes = require('./routes/auth')
 const aiRoutes   = require('./routes/ai')
 
+app.use('/api/auth', authRoutes)
+app.use('/api/ai', aiRoutes)
+
 // 路由邏輯寫在nginx try_files
 app.get('/api/data', (req, res) => {
     res.json({ message: "回傳資料"})
