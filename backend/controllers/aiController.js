@@ -37,7 +37,11 @@ exports.askAI = async (req, res) => {
 // ── 建立聊天主題 ───────────────────────────────
 exports.createSession = async (req, res) => {
     const { title }  = req.body
-    const user_id    = req.user.user_id
+    const user_id    = req.user?.user_id
+
+    if (!user_id) {
+        return res.status(401).json({ success: false, message: '使用者未登入或 Token 錯誤' })
+    }
 
     try {
         const [result] = await pool.query(

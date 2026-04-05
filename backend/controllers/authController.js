@@ -112,7 +112,7 @@ exports.login = async (req, res) => {
         // 4. 產生 JWT Token
         const token = jwt.sign(
             {
-                user_id:  user.id,
+                user_id:  user.user_id,
                 username: user.username
             },
             process.env.JWT_SECRET,
