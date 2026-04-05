@@ -1,4 +1,0 @@
-vsersion: 3.8
-services:
-  web: 
-    image: nginx
