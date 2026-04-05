@@ -173,5 +173,11 @@ pm2 reload server
 ```
 
 ---
+# 參考資料
+[API 資料整合](https://hackmd.io/@sam21/rkmWdQWjbg)
+
+[database 資料](https://hackmd.io/@sam21/ry4LDm-sZg)
+
+---
 
 Happy building! If you'd like help expanding authentication, adding role-based access, or improving security, just say the word.

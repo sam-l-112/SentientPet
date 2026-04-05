@@ -1,0 +1,42 @@
+server {
+    listen 80;
+    server_name 192.168.50.150; # 或你的網域
+
+    # 設定日誌路徑 (對應 docker-compose 中的掛載)
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    # 1. 前端靜態頁面
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html; # 支援 SPA 路由 (Vue/React)
+    }
+
+    # 2. 後端 API 轉發
+    location /api/ {
+        # 'app' 是 docker-compose 中的服務名稱，3000 是 Node.js 埠號
+        proxy_pass http://app:3000; 
+        
+        # 傳遞真實客戶端 IP 給後端
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket 支援 (如果你有即時聊天功能)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # AI 推論通常較慢，增加超時時間防止 504 Gateway Timeout
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+
+    # 禁止存取隱藏檔案 (如 .env)
+    location ~ /\. {
+        deny all;
+    }
+}
