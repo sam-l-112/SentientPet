@@ -1,0 +1,49 @@
+vsersion: 3.8
+services:
+  # MariaDB database
+  db: 
+    image: mariadb:latest
+    container_name: sentient_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: your_root_password
+      MYSQL_DATABASE: sentient_pet
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+      - ./logs/mariadb:/var/log/mysql
+    networks:
+      - sentient_net
+  # Node.js (pm2)
+  app: 
+    build: .
+    container_name: sentient_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASS: your_root_password
+    volumes:
+      - .:/usr/src/app
+      - ./logs/node:/root/.pm2/logs  # 將 PM2 日誌掛載出來
+    networks:
+      - sentient_net
+  # Nginx (proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: sentient_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - sentient_net
+
+networks:
+  sentient_net:
+    driver: bridge

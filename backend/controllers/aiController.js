@@ -37,10 +37,14 @@ exports.askAI = async (req, res) => {
 // ── 建立聊天主題 ───────────────────────────────
 exports.createSession = async (req, res) => {
     const { title }  = req.body
-    const user_id    = req.user.user_id
+    const user_id    = req.user?.user_id
+
+    if (!user_id) {
+        return res.status(401).json({ success: false, message: '使用者未登入或 Token 錯誤' })
+    }
 
     try {
-        const [result] = await pool.query(
+        const result = await pool.query(
             'INSERT INTO chat_sessions (user_id, title) VALUES (?, ?)',
             [user_id, title || '新對話']
         )
@@ -48,7 +52,7 @@ exports.createSession = async (req, res) => {
         res.status(201).json({
             success: true,
             message: '建立成功',
-            cs_id:   result.insertId
+            cs_id:   Number(result.insertId)
         })
     } catch (err) {
         console.error(err)
@@ -61,7 +65,7 @@ exports.getSessions = async (req, res) => {
     const user_id = req.user.user_id
 
     try {
-        const [sessions] = await pool.query(
+        const sessions = await pool.query(
             `SELECT cs_id, title, created_at
              FROM chat_sessions
              WHERE user_id = ?
@@ -86,7 +90,7 @@ exports.chat = async (req, res) => {
 
     try {
         // 確認 session 屬於此使用者
-        const [session] = await pool.query(
+        const session = await pool.query(
             'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
             [cs_id, user_id]
         )
@@ -101,7 +105,7 @@ exports.chat = async (req, res) => {
         )
 
         // 2. 取得歷史訊息（最近 20 則，避免 token 超限）
-        const [history] = await pool.query(
+        const history = await pool.query(
             `SELECT role, content FROM messages
              WHERE cs_id = ?
              ORDER BY created_at ASC
@@ -110,7 +114,7 @@ exports.chat = async (req, res) => {
         )
 
         // 3. 取得使用者長期記憶
-        const [memories] = await pool.query(
+        const memories = await pool.query(
             `SELECT content, type FROM memories
              WHERE user_id = ?
              ORDER BY created_at DESC
@@ -162,7 +166,7 @@ exports.getHistory = async (req, res) => {
     const user_id   = req.user.user_id
 
     try {
-        const [session] = await pool.query(
+        const session = await pool.query(
             'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
             [cs_id, user_id]
         )
@@ -170,7 +174,7 @@ exports.getHistory = async (req, res) => {
             return res.status(403).json({ success: false, message: '無權限存取此對話' })
         }
 
-        const [messages] = await pool.query(
+        const messages = await pool.query(
             `SELECT mes_id, role, content, created_at
              FROM messages
              WHERE cs_id = ?
