@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-version: '3.8'
-
-services:
-  # MariaDB 
-  db: 
-    image: mariadb:10.6
-    container_name: sentient_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: sentient_root_pass  # 建議換掉
-=======
 vsersion: 3.8
 services:
   # MariaDB database
@@ -19,47 +7,20 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: your_root_password
->>>>>>> 98bb9a89bd95cdbafec61a25b4b2685698d8fe7c
       MYSQL_DATABASE: sentient_pet
     volumes:
       - ./data/mariadb:/var/lib/mysql
       - ./logs/mariadb:/var/log/mysql
-<<<<<<< HEAD
-      # 建議：預設初始化 SQL 放在這裡，啟動時會自動執行
-      - ./infra/mariadb/init:/docker-entrypoint-initdb.d 
-    networks:
-      - sentient_net
-
-  # Node.js (使用 PM2)
-  app: 
-    build: 
-      context: ./backend             # 指向 backend 資料夾
-      dockerfile: Dockerfile
-=======
     networks:
       - sentient_net
   # Node.js (pm2)
   app: 
     build: .
->>>>>>> 98bb9a89bd95cdbafec61a25b4b2685698d8fe7c
     container_name: sentient_app
     restart: always
     depends_on:
       - db
     environment:
-<<<<<<< HEAD
-      DB_HOST: db                    # 這裡直接寫服務名稱 db
-      DB_USER: root
-      DB_PASS: sentient_root_pass
-      NODE_ENV: production
-    volumes:
-      - ./backend:/usr/src/app       # 掛載 backend 源碼
-      - ./logs/node:/root/.pm2/logs  # PM2 日誌
-    networks:
-      - sentient_net
-
-  # Nginx
-=======
       DB_HOST: db
       DB_USER: root
       DB_PASS: your_root_password
@@ -69,7 +30,6 @@ services:
     networks:
       - sentient_net
   # Nginx (proxy)
->>>>>>> 98bb9a89bd95cdbafec61a25b4b2685698d8fe7c
   nginx:
     image: nginx:alpine
     container_name: sentient_nginx
@@ -77,12 +37,7 @@ services:
     ports:
       - "80:80"
     volumes:
-<<<<<<< HEAD
-      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf # 映射設定檔
-      - ./frontend:/usr/share/nginx/html                         # 映射前端檔案
-=======
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
->>>>>>> 98bb9a89bd95cdbafec61a25b4b2685698d8fe7c
       - ./logs/nginx:/var/log/nginx
     depends_on:
       - app
