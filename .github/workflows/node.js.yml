@@ -11,8 +11,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    
 # --- 新增這段服務設定 ---
     services:
       mariadb:
@@ -39,6 +42,11 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: backend/package-lock.json
+        # cache-dependency-path: backend/package.json
+
+    - name: Check directory structure
+      run: ls -R
+      
     - run: npm ci
       working-directory: backend
       
