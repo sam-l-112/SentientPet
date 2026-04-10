@@ -851,3 +851,12 @@
 [AUTH SUCCESS] 使用者: admint | IP: 1.175.174.247 | 時間: 4/7/2026, 9:07:32 AM
 1.175.174.247 - - [07/Apr/2026:09:08:03 +0000] "POST /api/auth/login HTTP/1.1" 200 290 "http://210.70.254.110:2237/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
 [AUTH SUCCESS] 使用者: admint | IP: 1.175.174.247 | 時間: 4/7/2026, 9:08:03 AM
+101.8.250.21 - - [07/Apr/2026:12:56:38 +0000] "POST /api/auth/login HTTP/1.1" 200 290 "http://210.70.254.110:2237/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+[AUTH SUCCESS] 使用者: admint | IP: 101.8.250.21 | 時間: 4/7/2026, 12:56:38 PM
+101.8.250.21 - - [07/Apr/2026:12:56:39 +0000] "GET /api/ai/history/29?t=1775566599828 HTTP/1.1" 200 325 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+101.8.250.21 - - [07/Apr/2026:12:57:25 +0000] "POST /api/ai/chat HTTP/1.1" 200 106 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+101.8.250.21 - - [07/Apr/2026:12:59:01 +0000] "POST /api/ai/chat HTTP/1.1" 200 135 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+192.168.50.1 - - [07/Apr/2026:14:33:32 +0000] "POST /api/auth/login HTTP/1.1" 200 290 "http://210.70.254.110:2237/pages/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+[AUTH SUCCESS] 使用者: admint | IP: 192.168.50.1 | 時間: 4/7/2026, 2:33:32 PM
+192.168.50.1 - - [07/Apr/2026:14:33:32 +0000] "GET /api/ai/history/29?t=1775572414159 HTTP/1.1" 200 867 "http://210.70.254.110:2237/index.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0"
+192.168.50.1 - - [07/Apr/2026:15:08:03 +0000] "GET /api/ai/history/16?t=1775574484865 HTTP/1.1" 200 592 "http://210.70.254.110:2237/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36"
