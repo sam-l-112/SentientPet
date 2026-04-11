@@ -1,4 +1,5 @@
 // controllers/aiController.js
+const express = require("express")
 const pool      = require('../config/database')
 const aiService = require('../services/aiService')
 
@@ -178,7 +179,7 @@ exports.getHistory = async (req, res) => {
             `SELECT mes_id, role, content, created_at
              FROM messages
              WHERE cs_id = ?
-             ORDER BY created_at ASC`,
+             ORDER BY created_at DESC`,
             [cs_id]
         )
 
