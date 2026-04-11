@@ -185,7 +185,14 @@ async function handleSend() {
 
   appendMessage("user", text);
   history.push({ role: "user", content: text });
+  // 1. 先顯示打字中
   showTyping();
+
+  // 2. 在這裡加入情緒圖表更新
+  // 檢查 mockEmotionScore 是否存在，避免檔案沒讀取到時報錯
+  if (typeof mockEmotionScore === 'function') {
+      mockEmotionScore(text);
+  }
 
   try {
     let reply = await callAPI([...history]);

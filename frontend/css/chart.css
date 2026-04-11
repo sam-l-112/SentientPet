@@ -1,0 +1,43 @@
+/* css/chart.css */
+
+/* 圖表外層容器：控制展開收合動畫 */
+.chart-wrapper {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  max-height: 0; /* 預設收合 */
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* 展開狀態 */
+.chart-wrapper.open {
+  max-height: 250px; /* 根據需求調整高度 */
+  padding: 15px 20px;
+}
+
+/* Canvas 本體 */
+#emotionChart {
+  width: 100% !important;
+  height: 160px !important;
+}
+
+/* 標頭右側的切換按鈕 */
+.toggle-chart-btn {
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--bg);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.toggle-chart-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--surface);
+}
