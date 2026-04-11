@@ -3,16 +3,9 @@
    配合 SentientPet-AI 的粉紫色系風格
    ═══════════════════════════════════════════════════════════ */
 
-/* ── 外層版面：讓聊天區和圖表區左右並排 ────────────────── */
-.layout {
-  display: flex;
-  height: 100dvh;
-  overflow: hidden;
-}
-
 /* ── 圖表面板容器 ───────────────────────────────────────── */
 #emotion-panel {
-  width: 280px;
+  width: 340px;
   min-width: 280px;
   height: 100dvh;
   background: #ffffff;

@@ -194,6 +194,7 @@ async function handleSend() {
     removeTyping();
     appendMessage("bot", reply);
     history.push({ role: "assistant", content: reply });
+    analyzeEmotion(reply);
   } catch (err) {
     removeTyping();
     appendMessage("bot", `⚠️ ${err.message}`);
@@ -254,3 +255,23 @@ sendBtn.addEventListener("click", handleSend);
 // 頁面載入時執行初始化
 // ══════════════════════════════════════════════════════════════
 init();
+
+async function analyzeEmotion(text) {
+  const scores = { joy: 0, sadness: 0, anger: 0, fear: 0, disgust: 0, surprise: 0 };
+
+  const keywords = {
+    joy:      ["開心", "快樂", "高興", "棒", "讚", "好玩", "哈哈", "😊", "😄", "喜歡"],
+    sadness:  ["難過", "傷心", "哭", "悲", "痛", "失落", "沮喪", "😢", "😭"],
+    anger:    ["生氣", "憤怒", "煩", "討厭", "氣死", "幹", "怒", "😠", "😡"],
+    fear:     ["害怕", "恐懼", "擔心", "緊張", "焦慮", "不安", "怕", "😨", "😰"],
+    disgust:  ["噁心", "厭惡", "反感", "噁", "惡心", "🤢", "😖"],
+    surprise: ["驚訝", "竟然", "沒想到", "真的嗎", "哇", "居然", "😲", "😮"]
+  };
+
+  for (const [emotion, words] of Object.entries(keywords)) {
+    const count = words.filter(w => text.includes(w)).length;
+    scores[emotion] = Math.min(100, count * 30);
+  }
+
+  EmotionChart.update(scores);
+}
