@@ -109,7 +109,7 @@ exports.chat = async (req, res) => {
         const history = await pool.query(
             `SELECT role, content FROM messages
              WHERE cs_id = ?
-             ORDER BY created_at ASC
+             ORDER BY created_at DESC
              LIMIT 20`,
             [cs_id]
         )
@@ -179,7 +179,7 @@ exports.getHistory = async (req, res) => {
             `SELECT mes_id, role, content, created_at
              FROM messages
              WHERE cs_id = ?
-             ORDER BY created_at DESC`,
+             ORDER BY created_at ASC`,
             [cs_id]
         )
 
