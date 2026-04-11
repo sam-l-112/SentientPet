@@ -56,15 +56,22 @@
    .app {
      display: flex;
      flex-direction: column;
+     flex: 1;
      height: 100dvh;
-     max-width: 720px;
-     margin: 0 auto;
+     /* max-width: 720px; */
      position: relative;
      z-index: 1;
      background: var(--surface);
      box-shadow: 0 0 60px rgba(180,140,220,.12);
    }
-   
+
+   /* ── 版面 ── */
+   .layout {
+    display: flex;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
    /* ── 標頭 ── */
    header {
      display: flex;
