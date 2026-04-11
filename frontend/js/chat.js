@@ -47,24 +47,6 @@ async function handleSend() {
   }
 }
 
-// 4. 數據橋樑 (獨立在最外層，確保能被找到)
-function updateEmotionRadar(text) {
-  if (!window.EmotionChart) {
-    console.error("❌ 找不到 EmotionChart，請檢查 index.html 是否有引入 emotionChart.js");
-    return;
-  }
-  const scores = {
-    joy: Math.floor(Math.random() * 50) + 10,
-    sadness: Math.floor(Math.random() * 20),
-    anger: Math.floor(Math.random() * 10),
-    fear: Math.floor(Math.random() * 10),
-    disgust: 5,
-    surprise: Math.floor(Math.random() * 30)
-  };
-  console.log("📊 圖表更新中...", scores);
-  EmotionChart.update(scores);
-}
-
 // 5. 清理 AI 回覆標籤
 function sanitizeAnswer(text) {
   if (typeof text !== "string") return text;
