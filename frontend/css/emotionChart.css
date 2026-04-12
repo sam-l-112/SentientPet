@@ -41,6 +41,35 @@
   margin: 0;
 }
 
+/* ── 綜合情緒分數區塊 ───────────────────────────────────── */
+.ec-score-wrap {
+  text-align: center;
+  padding: 10px 0;
+}
+
+/* ── 分數標題文字 ────────────────────────────────────────── */
+.ec-score-label {
+  font-size: 10px;
+  color: #a89bbf;
+  margin: 0 0 4px;
+}
+
+/* ── 大字分數數值 ────────────────────────────────────────── */
+.ec-score-value {
+  font-size: 42px;
+  font-weight: 600;
+  color: #4a3f5c;
+  margin: 0;
+  line-height: 1;
+}
+
+/* ── 階段標示文字（負面/中性/正面） ─────────────────────── */
+.ec-score-stage {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 6px 0 0;
+}
+
 /* ── 圖例 ────────────────────────────────────────────────── */
 .ec-legend {
   display: flex;

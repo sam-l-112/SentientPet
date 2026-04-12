@@ -1,4 +1,4 @@
-// 1. 全域變數
+// ── 全域變數：API 位址、DOM 元素、對話狀態 ──
 const API_BASE = "http://210.70.254.110:2237";
 const messagesEl = document.getElementById("messages");
 const welcomeEl = document.getElementById("welcome");
@@ -7,7 +7,7 @@ const sendBtn = document.getElementById("sendBtn");
 let history = [];
 let currentCsId = null;
 
-// 2. 初始化
+// 頁面載入時執行：檢查登入狀態，有舊對話則載入，否則建立新對話
 async function init() {
   const token = localStorage.getItem("token");
   if (!token) { window.location.href = "pages/login.html"; return; }
@@ -15,7 +15,7 @@ async function init() {
   if (currentCsId) { await loadHistory(currentCsId); } else { await createSession(); }
 }
 
-// 3. 核心功能：發送訊息
+// 處理使用者送出訊息：更新畫面、送給 AI、取得回覆後更新情緒面板
 async function handleSend() {
   const text = inputEl.value.trim();
   if (!text || sendBtn.disabled) return;
@@ -44,7 +44,7 @@ async function handleSend() {
   }
 }
 
-// 5. 清理 AI 回覆標籤
+// 清理 AI 回覆內容：過濾 <think> 標籤與思考過程，只保留最終回答
 function sanitizeAnswer(text) {
   if (typeof text !== "string") return text;
   let s = text.trim();
@@ -53,7 +53,7 @@ function sanitizeAnswer(text) {
   return m ? m[1].trim() : s;
 }
 
-// 6. 其他輔助函式 (API 呼叫與 UI 更新)
+// 呼叫後端 AI 聊天 API，帶入 cs_id 與使用者訊息，回傳清理後的 AI 回覆
 async function callAPI(messages) {
   const userMessage = messages[messages.length - 1].content;
   const token = localStorage.getItem('token');
@@ -69,6 +69,7 @@ async function callAPI(messages) {
   } catch (e) { return sanitizeAnswer(rawText); }
 }
 
+// 向後端建立新的對話 session，取得 cs_id 並存入 localStorage
 async function createSession() {
   const token = localStorage.getItem("token");
   const res = await fetch(`${API_BASE}/api/ai/session`, {
@@ -80,6 +81,7 @@ async function createSession() {
   if (data.success) { currentCsId = data.cs_id; localStorage.setItem("current_cs_id", currentCsId); }
 }
 
+// 從後端載入指定 cs_id 的歷史訊息，並渲染到畫面上
 async function loadHistory(csId) {
   const token = localStorage.getItem("token");
   if (welcomeEl) welcomeEl.style.display = "none";
@@ -96,6 +98,7 @@ async function loadHistory(csId) {
   }
 }
 
+// 將訊息泡泡新增至聊天畫面，role 為 "user" 或 "bot"
 function appendMessage(role, text, shouldScroll = true) {
   if (welcomeEl) welcomeEl.style.display = "none";
   const row = document.createElement("div");
@@ -105,6 +108,7 @@ function appendMessage(role, text, shouldScroll = true) {
   if (shouldScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+// 顯示 AI 打字中的動畫泡泡
 function showTyping() {
   const row = document.createElement("div");
   row.className = "row bot"; row.id = "typing-row";
@@ -112,8 +116,11 @@ function showTyping() {
   messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
+
+// 移除打字中動畫
 function removeTyping() { document.getElementById("typing-row")?.remove(); }
 
+// ── 事件監聽：Enter 送出、按鈕點擊 ──
 inputEl.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } });
 sendBtn.addEventListener("click", handleSend);
 
@@ -122,6 +129,7 @@ sendBtn.addEventListener("click", handleSend);
 // ══════════════════════════════════════════════════════════════
 init();
 
+// 對 AI 回覆文字進行關鍵字情緒分析，計算六大情緒分數並更新雷達圖面板
 async function analyzeEmotion(text) {
   const scores = { joy: 0, sadness: 0, anger: 0, fear: 0, disgust: 0, surprise: 0 };
 
