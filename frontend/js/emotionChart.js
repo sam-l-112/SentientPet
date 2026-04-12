@@ -57,6 +57,13 @@ const EmotionChart = (() => {
           </canvas>
         </div>
 
+        <!-- 綜合分數區塊 -->
+        <div class="ec-score-wrap">
+          <p class="ec-score-label">情緒狀態</p>
+          <p class="ec-score-value" id="ec-score">50</p>
+          <p class="ec-score-stage" id="ec-stage">中性</p>
+        </div>
+        
         <!-- 數值卡片 -->
         <div class="ec-cards">
           ${EMOTIONS.map(e => `
@@ -152,6 +159,21 @@ const EmotionChart = (() => {
       const el = document.getElementById(`ec-val-${e.key}`);
       if (el) el.textContent = values[i];
     });
+
+    // 加權計算綜合情緒分數：快樂正向、負面情緒扣分、基準為 50
+    const score = Math.min(100, Math.max(0, Math.round(
+      50 + values[0]*0.5 - values[1]*0.3 - values[2]*0.3 - values[3]*0.2 - values[4]*0.2
+    )));
+    // 更新綜合分數數字
+    const scoreEl = document.getElementById('ec-score');
+    const stageEl = document.getElementById('ec-stage');
+    if (scoreEl) scoreEl.textContent = score;
+    // 根據分數區間更新階段標示與顏色
+    if (stageEl) {
+      if (score <= 40) { stageEl.textContent = '負面'; stageEl.style.color = '#E24B4A'; }
+      else if (score <= 70) { stageEl.textContent = '中性'; stageEl.style.color = '#BA7517'; }
+      else { stageEl.textContent = '正面'; stageEl.style.color = '#1D9E75'; }
+    }
   }
 
   /* ── 重置為全 0 ──────────────────────────────────────── */
