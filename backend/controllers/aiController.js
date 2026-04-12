@@ -2,6 +2,7 @@
 const express = require("express")
 const pool      = require('../config/database')
 const aiService = require('../services/aiService')
+// const { now } = require("mongoose")
 
 // ── 單次問答（保留原本功能）─────────────────────
 exports.askAI = async (req, res) => {
@@ -12,9 +13,9 @@ exports.askAI = async (req, res) => {
             return res.status(400).json({ success: false, message: '請輸入問題' })
         }
 
-        const aiAnswer = await aiService.callAI([
-            { role: 'user', content: prompt }
-        ])
+        // const aiAnswer = await aiService.callAI([
+        //     { role: 'user', content: prompt }
+        // ])
 
         res.json({ success: true, answer: aiAnswer })
 
@@ -35,25 +36,31 @@ exports.askAI = async (req, res) => {
     }
 }
 
-// ── 建立聊天主題 ───────────────────────────────
+// ── 建立聊天表 (time) ───────────────────────────────
 exports.createSession = async (req, res) => {
-    const { title }  = req.body
+    // const { title }  = req.body
     const user_id    = req.user?.user_id
 
     if (!user_id) {
-        return res.status(401).json({ success: false, message: '使用者未登入或 Token 錯誤' })
+        return res.status(401).json({ success: false, message: '使用者未登入錯誤' })
     }
 
     try {
-        const result = await pool.query(
-            'INSERT INTO chat_sessions (user_id, title) VALUES (?, ?)',
-            [user_id, title || '新對話']
+        const chat_session_time_date = new Date();
+        await pool.query(
+            'INSERT INTO chat_sessions (user_id, chat_session_time_date) VALUES (?, ?)',
+            [user_id, chat_session_time_date]
         )
 
         res.status(201).json({
             success: true,
             message: '建立成功',
-            cs_id:   Number(result.insertId)
+            session_key: {
+                user_id: user_id,
+                chat_session_time_date: chat_session_time_date
+            }
+            
+            // cs_id:   Number(result.insertId)
         })
     } catch (err) {
         console.error(err)
@@ -67,51 +74,59 @@ exports.getSessions = async (req, res) => {
 
     try {
         const sessions = await pool.query(
-            `SELECT cs_id, title, created_at
+            `SELECT user_id, chat_session_time_date
              FROM chat_sessions
-             WHERE user_id = ?
-             ORDER BY created_at DESC`,
+             WHERE user_id = ? 
+             ORDER BY chat_session_time_date DESC`,
             [user_id]
         )
         res.json({ success: true, sessions })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ success: false, message: '伺服器錯誤' })
+        res.status(500).json({ success: false, message: 'server error' })
     }
 }
 
-// ── 聊天（含歷史記憶）────────────────────────
+// ── 聊天（含歷史記憶 對應 POST /sessions/:session_time/messages）────────────────────────
 exports.chat = async (req, res) => {
-    const { cs_id, content } = req.body
+    const chat_session_time_date = req.params.session_time || req.body.chat_session_time_date
+    const { content } = req.body // 參數名稱統一 (Parameter name)
     const user_id = req.user.user_id
 
-    if (!cs_id || !content) {
-        return res.status(400).json({ success: false, message: '缺少 cs_id 或 content' })
+    if (!chat_session_time_date || !content) {
+        return res.status(400).json({ success: false, message: 'Missing conversation time' })
     }
 
     try {
         // 確認 session 屬於此使用者
         const session = await pool.query(
-            'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
-            [cs_id, user_id]
+            'SELECT * FROM chat_sessions WHERE chat_session_time_date = ? AND user_id = ?',
+            [chat_session_time_date, user_id]
         )
-        if (session.length === 0) {
-            return res.status(403).json({ success: false, message: '無權限存取此對話' })
+        if ( session.length === 0) {
+            return res.status(403).json({ success: false, message: '無存取此對話' })
         }
 
-        // 1. 存入使用者訊息
+        // 1. 存入使用著訊息 (message_time_date 使用毫秒確保 PK 不衝突)
+        const user_message_time_date = new Date();
         await pool.query(
-            'INSERT INTO messages (cs_id, role, content) VALUES (?, ?, ?)',
-            [cs_id, 'user', content]
+           `INSERT INTO messages (user_id, chat_session_time_date, message_time_date, content)
+            VALUES (?, ?, ?, ?)`,
+            [user_id, chat_session_time_date, user_message_time_date, content]
         )
+        // 1. 存入使用者訊息
+        // await pool.query(
+        //     'INSERT INTO messages (user_id, chat_session_time_date, content) VALUES (?, ?, ?)',
+        //     [chat_session_time_date, 'user_id', content]
+        // )
 
         // 2. 取得歷史訊息（最近 20 則，避免 token 超限）
         const history = await pool.query(
-            `SELECT role, content FROM messages
-             WHERE cs_id = ?
-             ORDER BY created_at DESC
+            `SELECT content FROM messages
+             WHERE user_id = ? AND chat_session_time_date = ?
+             ORDER BY message_time_date ASC
              LIMIT 20`,
-            [cs_id]
+            [user_id, chat_session_time_date]
         )
 
         // 3. 取得使用者長期記憶
@@ -128,7 +143,7 @@ exports.chat = async (req, res) => {
             '你是一個友善、樂於助人的虛擬寵物，請以口語化、自然且簡潔的繁體中文回答，不需要顯示思考過程。\n'
 
         if (memories.length > 0) {
-            systemPrompt += '\n以下是你對這位主人的記憶，請自然地運用：\n'
+            systemPrompt += '\n以下是你對這位主人的記憶,請自然地運用 : \n'
             memories.forEach(m => {
                 systemPrompt += `[${m.type}] ${m.content}\n`
             })
@@ -136,14 +151,16 @@ exports.chat = async (req, res) => {
 
         // 5. 呼叫 AI
         const aiReply = await aiService.callAI(
-            history.map(m => ({ role: m.role, content: m.content })),
+            history.map(m => ({ content: m.content })),
             systemPrompt
         )
 
         // 6. 存入 AI 回覆
+        const ai_message_time_date = new Date()
         await pool.query(
-            'INSERT INTO messages (cs_id, role, content) VALUES (?, ?, ?)',
-            [cs_id, 'assistant', aiReply]
+            `INSERT INTO messages (user_id, chat_session_time_date, message_time_date, content) 
+            VALUES (?, ?, ? , ?)`,
+            [user_id, chat_session_time_date , ai_message_time_date , aiReply]
         )
 
         // 7. 背景自動擷取記憶（不影響回應速度）
@@ -163,27 +180,27 @@ exports.chat = async (req, res) => {
 
 // ── 取得聊天紀錄 ───────────────────────────────
 exports.getHistory = async (req, res) => {
-    const { cs_id } = req.params
+    const { chat_session_time_date } = req.params.session_time || req.params.chat_session_time_date
     const user_id   = req.user.user_id
 
     try {
         const session = await pool.query(
-            'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
-            [cs_id, user_id]
+            'SELECT * FROM chat_sessions WHERE chat_session_time = ? AND user_id = ?',
+            [chat_session_time_date, user_id]
         )
         if (session.length === 0) {
             return res.status(403).json({ success: false, message: '無權限存取此對話' })
         }
 
         const messages = await pool.query(
-            `SELECT mes_id, role, content, created_at
+            `SELECT user_id, chat_session_time_date, content, message_time_date
              FROM messages
-             WHERE cs_id = ?
-             ORDER BY created_at ASC`,
-            [cs_id]
+             WHERE user_id AND chat_session_time_date = ?
+             ORDER BY message_time_date ASC`,
+            [user_id, chat_session_time_date]
         )
 
-        res.json({ success: true, cs_id, messages })
+        res.json({ success: true, chat_session_time_date, messages })
 
     } catch (err) {
         console.error(err)
