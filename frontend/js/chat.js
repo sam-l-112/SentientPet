@@ -28,9 +28,6 @@ async function handleSend() {
   history.push({ role: "user", content: text });
   showTyping();
 
-  // 呼叫雷達圖更新
-  updateEmotionRadar(text);
-
   try {
     let reply = await callAPI([...history]);
     if (window.toTraditional) reply = window.toTraditional(reply);
