@@ -19,6 +19,41 @@ CREATE TABLE users (
     UNIQUE KEY uq_users_email    (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 2. 對話表資料
+CREATE TABLE chat_sessions (
+    user_id    INT           NOT NULL,
+    chat_session_time_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 最後對話時間自動更新
+    
+    PRIMARY KEY (user_id,chat_session_time_date),
+    CONSTRAINT fk_cs_user
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+-- 3. 對話訊息資料
+CREATE TABLE messages (
+    user_id    INT           NOT NULL,
+    chat_session_time_date TIMESTAMP NOT NULL,
+    role       VARCHAR(10)  NOT NULL,
+    
+    content    TEXT          NOT NULL,
+    message_time_date TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (user_id,chat_session_time_date,message_time_date),
+
+    CONSTRAINT fk_mes_session
+        FOREIGN KEY (user_id, chat_session_time_date) REFERENCES chat_sessions(user_id, chat_session_time_date)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
 -- CREATE TABLE IF NOT EXISTS `users` (
 --   `id` INT AUTO_INCREMENT PRIMARY KEY,
 --   `username` VARCHAR(50) NOT NULL UNIQUE COMMENT '使用者名稱',
