@@ -2,6 +2,11 @@
 const pool      = require('../config/database')
 const aiService = require('../services/aiService')
 
+// -- 統一時間 -----------------------------------
+function toMariaDBTime(date = new Date()) {
+    return date.toISOString().slice(0, 19).replace('T', ' ')
+}
+
 // ── 單次問答 ─────────────────────────────────────────
 exports.askAI = async (req, res) => {
     try {
@@ -42,7 +47,7 @@ exports.createSession = async (req, res) => {
     }
 
     try {
-        const chat_session_time_date = new Date()
+        const chat_session_time_date = toMariaDBTime()
         await pool.query(
             'INSERT INTO chat_sessions (user_id, chat_session_time_date) VALUES (?, ?)',
             [user_id, chat_session_time_date]
@@ -104,7 +109,7 @@ exports.chat = async (req, res) => {
         }
 
         // 1. 存入使用者訊息
-        const user_message_time_date = new Date()
+        const user_message_time_date = toMariaDBTime();
         await pool.query(
             `INSERT INTO messages (user_id, chat_session_time_date, message_time_date, role, content)
              VALUES (?, ?, ?, ?, ?)`,
@@ -152,7 +157,7 @@ exports.chat = async (req, res) => {
         const aiReply = await aiService.callAI(messages, systemPrompt)
 
         // 7. 存入 AI 回覆（時間 +1ms 確保 PK 不衝突）
-        const ai_message_time_date = new Date(user_message_time_date.getTime() + 1)
+        const ai_message_time_date = toMariaDBTime(new Date().getTime() + 1000)
         await pool.query(
             `INSERT INTO messages (user_id, chat_session_time_date, message_time_date, role, content)
              VALUES (?, ?, ?, ?, ?)`,
