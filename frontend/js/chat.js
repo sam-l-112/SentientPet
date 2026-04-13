@@ -12,6 +12,8 @@ async function init() {
   const token = localStorage.getItem("token");
   if (!token) { window.location.href = "pages/login.html"; return; }
   currentCsId = localStorage.getItem("current_cs_id");
+  // 排除 localStorage 存到 "undefined" 字串的情況
+  if (currentCsId === "undefined") currentCsId = null;
   if (currentCsId) { await loadHistory(currentCsId); } else { await createSession(); }
 }
 
@@ -57,10 +59,11 @@ function sanitizeAnswer(text) {
 async function callAPI(messages) {
   const userMessage = messages[messages.length - 1].content;
   const token = localStorage.getItem('token');
-  const res = await fetch(`${API_BASE}/api/ai/chat`, {
+  // session_time 放 URL，body 只帶訊息內容
+  const res = await fetch(`${API_BASE}/api/ai/session/${encodeURIComponent(currentCsId)}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-    body: JSON.stringify({ cs_id: Number(currentCsId), content: userMessage })
+    body: JSON.stringify({ content: userMessage })
   });
   const rawText = await res.text();
   try {
@@ -78,14 +81,17 @@ async function createSession() {
     body: JSON.stringify({ title: "新對話" })
   });
   const data = await res.json();
-  if (data.success) { currentCsId = data.cs_id; localStorage.setItem("current_cs_id", currentCsId); }
+  console.log("createSession 回傳:", data);
+  // 儲存後端回傳的 session 時間作為對話識別，取代原本的 cs_id
+  if (data.success) { currentCsId = data.session_key.chat_session_time_date; localStorage.setItem("current_cs_id", currentCsId); }
 }
 
 // 從後端載入指定 cs_id 的歷史訊息，並渲染到畫面上
 async function loadHistory(csId) {
   const token = localStorage.getItem("token");
   if (welcomeEl) welcomeEl.style.display = "none";
-  const res = await fetch(`${API_BASE}/api/ai/history/${csId}`, {
+  // 依 session_time 取得對話歷史紀錄
+  const res = await fetch(`${API_BASE}/api/ai/session/${encodeURIComponent(csId)}/messages`, {
     headers: { "Authorization": `Bearer ${token}` }
   });
   const data = await res.json();
