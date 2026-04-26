@@ -8,25 +8,28 @@ CREATE DATABASE IF NOT EXISTS Sentient_pet
 
 -- 1. 使用者資料表
 CREATE TABLE users (
-    user_id    INT           NOT NULL AUTO_INCREMENT,
-    username   VARCHAR(50)   NOT NULL,
-    password   VARCHAR(255)  NOT NULL,          -- 請用 bcrypt 加密後存入
-    email      VARCHAR(100)  NOT NULL,
-    created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id     INT             NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username    VARCHAR(50)     NOT NULL,
+    password    VARCHAR(255)    NOT NULL,          -- 請用 bcrypt 加密後存入
+    email       VARCHAR(100)    NOT NULL,
+    created_at  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (user_id),
-    UNIQUE KEY uq_users_username (username),
-    UNIQUE KEY uq_users_email    (email)
+    UNIQUE  KEY uq_users_username   (username),
+    UNIQUE  KEY uq_users_email      (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2. 對話表資料
 CREATE TABLE chat_sessions (
-    user_id    INT           NOT NULL,
-    chat_session_time_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 最後對話時間自動更新
-    
-    PRIMARY KEY (user_id,chat_session_time_date),
+    user_id INT NOT NULL,
+    cs_id   INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+
+    title   VARCHAR(255)    DEFAULT 'New Chat',
+
+    chat_session_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,  -- 最後對話時間自動更新
+
+    INDEX idx_user_id (user_id),
+
     CONSTRAINT fk_cs_user
         FOREIGN KEY (user_id) REFERENCES users (user_id)
         ON DELETE CASCADE
@@ -37,17 +40,18 @@ CREATE TABLE chat_sessions (
 
 -- 3. 對話訊息資料
 CREATE TABLE messages (
-    user_id    INT           NOT NULL,
-    chat_session_time_date TIMESTAMP NOT NULL,
-    role       VARCHAR(10)  NOT NULL,
+    cs_id   INT NOT NULL,
+    mes_id  INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+
+    role    ENUM('user','assistant','system')   NOT NULL,
+    content TEXT    NOT NULL,
     
-    content    TEXT          NOT NULL,
-    message_time_date TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    PRIMARY KEY (user_id,chat_session_time_date,message_time_date),
+    message_at  TIMESTAMP   NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_cs_id (cs_id, message_at),
 
     CONSTRAINT fk_mes_session
-        FOREIGN KEY (user_id, chat_session_time_date) REFERENCES chat_sessions(user_id, chat_session_time_date)
+        FOREIGN KEY (cs_id) REFERENCES chat_sessions(cs_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
