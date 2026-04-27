@@ -60,7 +60,7 @@ async function callAPI(messages) {
   const userMessage = messages[messages.length - 1].content;
   const token = localStorage.getItem('token');
   // session_time 放 URL，body 只帶訊息內容
-  const res = await fetch(`${API_BASE}/api/ai/session/${encodeURIComponent(currentCsId)}/messages`, {
+  const res = await fetch(`${API_BASE}/api/ai/sessions/${encodeURIComponent(currentCsId)}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
     body: JSON.stringify({ content: userMessage })
@@ -75,7 +75,7 @@ async function callAPI(messages) {
 // 向後端建立新的對話 session，取得 cs_id 並存入 localStorage
 async function createSession() {
   const token = localStorage.getItem("token");
-  const res = await fetch(`${API_BASE}/api/ai/session`, {
+  const res = await fetch(`${API_BASE}/api/ai/sessions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
     body: JSON.stringify({ title: "新對話" })
