@@ -83,7 +83,7 @@ async function createSession() {
   const data = await res.json();
   console.log("createSession 回傳:", data);
   // 儲存後端回傳的 session 時間作為對話識別，取代原本的 cs_id
-  if (data.success) { currentCsId = data.session_key.chat_session_time_date; localStorage.setItem("current_cs_id", currentCsId); }
+  if (data.success) { currentCsId = data.cs_id; localStorage.setItem("current_cs_id", currentCsId); }
 }
 
 // 從後端載入指定 cs_id 的歷史訊息，並渲染到畫面上
