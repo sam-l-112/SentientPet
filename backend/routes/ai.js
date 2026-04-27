@@ -3,13 +3,19 @@ const router = express.Router()
 const aiController = require("../controllers/aiController")
 const authMiddleware = require('../middleware/authMiddleware')
 
+// ==== AI ====
 router.post('/ask', aiController.askAI)
 
-router.post('/chat',            authMiddleware, aiController.chat)
-router.post('/session',         authMiddleware, aiController.createSession)
+// === chat test ===
+// router.post('/chat',            authMiddleware, aiController.chat)
+
+// ==== sessions ===
+router.post('/sessions',         authMiddleware, aiController.createSession)
 router.get('/sessions',         authMiddleware, aiController.getSessions)
-router.post('/session/:session_time/messages',        authMiddleware, aiController.chat)
-router.get('/session/:session_time/messages',        authMiddleware, aiController.getHistory)
+
+// ==== messages ==
+router.post('/sessions/:cs_id/messages',        authMiddleware, aiController.chat)
+router.get('/sessions/:cs_id/messages',        authMiddleware, aiController.getHistory)
 // router.get('/history/:cs_id',   authMiddleware, aiController.getHistory)
 
 module.exports = router
