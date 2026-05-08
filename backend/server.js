@@ -42,6 +42,7 @@ app.use(express.json())
 // --- API 路由 
 const authRoutes = require('./routes/auth')
 const aiRoutes   = require('./routes/ai')
+const Sentiment_Analysis = require('./routes/sentiment_analysis')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/ai', aiRoutes)

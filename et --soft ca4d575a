@@ -1,0 +1,119 @@
+[33m74d60ce8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m update python pip workflows
+[33mf54836c4[m update sentiment analysis python pip system
+[33mca4d575a[m[33m ([m[1;31morigin/main[m[33m)[m update Sentiment Analysis python
+[33m3cc7b098[m update Sentiment Analysis
+[33m2bb8efd9[m add Sentiment Analysis
+[33m764d5f20[m add Sentiment Analysis
+[33maf0df0d4[m update logs
+[33mcabc15c8[m update
+[33m2fb023c6[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33m2c2e79f6[m update
+[33mf2deff7f[m update logs
+[33mbef1af14[m update file ai controller and init \ Functionality api and mariadb
+[33m7c1c274a[m update ai controllers
+[33m045abf4a[m update
+[33m2d6d6701[m update ai controller.js
+[33m6c94e6e7[m add node.js on Docker and Dockerfile
+[33m18825981[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet
+[33mea47c301[m update ai controller js
+[33mee389f7a[m 新增情緒綜合分數顯示與三階段狀態標示
+[33mbd8aa0f2[m update
+[33mbed33fde[m update
+[33m3fd6d687[m 將舊版情緒面板多於函式刪除乾淨
+[33m2f7b7d0d[m Merge branch 'feature/emotion-chart'
+[33m53a9c085[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33m3923b9e1[m[33m ([m[1;31morigin/feature/emotion-chart[m[33m)[m layout排版修正、新增情緒分析面板(純前端關鍵字粗略分析)初步實作
+[33mf3b2cca8[m  update ai controller js
+[33m55d1467f[m update ai controller js
+[33m9d88973a[m[33m ([m[1;31morigin/dev-fix-ui[m[33m)[m 暫存目前的功能進度（包含雷達圖與標籤清理）
+[33m8650776a[m 整合並取代掉"chart"
+[33mee5774c7[m 完成與 Niu UI 的整合，切換為雷達圖介面
+[33md864b684[m 合併前請儲存本機聊天和圖表邏輯
+[33m8d42ec65[m feat: 新增六大情緒雷達圖元件
+[33m4c50a248[m udpate node.js ymal
+[33mb08ad63e[m update logs
+[33m1471340e[m Change test script to exit with error code 1
+[33me4726ca1[m Change test script to exit with code 0
+[33mf5ab534d[m Update workflow to disable fail-fast strategy
+[33m23064043[m Update CI workflow to comment out backend directory
+[33m2d4c7ec7[m Disable npm test in node.js workflow
+[33mfb1e9bd9[m Update GitHub Actions workflow to include MariaDB service
+[33ma4d3eea7[m Fix cache-dependency-path in node.js.yml
+[33m34e156d8[m Fix cache path and working directory in workflow
+[33m2446c762[m Fix cache-dependency-path in node.js workflow
+[33m82d71068[m Add cache-dependency-path for npm caching
+[33mdea3f856[m update nginx app
+[33m17217240[m update logs
+[33m69b9c4a2[m 新增"保留對話紀錄"功能
+[33m946c88c9[m 優化聊天介面CSS
+[33m4b0149bf[m update file
+[33me7156a87[m update file
+[33md6329da3[m Fix merge conflicts in docker-compose and logs
+[33m3390bcad[m update file
+[33m98bb9a89[m 新增寵物選擇相關檔案
+[33mc9fa442d[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33mf7992226[m update docker
+[33mffa3e580[m update ai controller js
+[33mbcf49651[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet
+[33mae6d5cdb[m add docker
+[33mb399eef9[m Add MariaDB service to GitHub Actions workflow
+[33m9337bc0e[m update(test)
+[33mfcfb0ad4[m update ai service js
+[33m1f3340db[m update aicontrollers
+[33m8cbe9c24[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet
+[33m34be4b43[m 區分css檔案
+[33m96bea7f3[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet
+[33m3d5cb56a[m update
+[33m930ea4f9[m 更新登入註冊頁面排版
+[33mb3c89752[m update
+[33m961f731d[m update
+[33m2edb7e55[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33m7ccb800b[m update
+[33mad8602de[m update port
+[33m53976f68[m update port
+[33m8187e655[m update server
+[33mdb79de8d[m update
+[33m8c6b6182[m Add auth and ai routes to server.js and create .gitignore
+[33md6a8da56[m update
+[33me81f78f3[m update URL
+[33m86bd5fe0[m update
+[33md73d6af0[m update
+[33m62cad50a[m update .env and server.js
+[33m3698caa2[m update server.js
+[33mee1d1dc7[m update password text 8
+[33m03d90f8a[m README.md
+[33mafb917d5[m add API AI/auth routers and backend documentation md
+[33mb79082e5[m update md name
+[33mf27cd448[m feat(frontend): 優化 AI 回覆過濾邏輯並補充註解
+[33mfc943fa9[m 註解補充
+[33mbe50e446[m update logs
+[33mee2aaf33[m pudate .env and aicontroller
+[33m45dd4e21[m update aicontroller
+[33maa7cb7e9[m 修改註冊相關說明
+[33ma0013223[m 新增註冊相關說明
+[33mf457cafb[m 新增註冊相關畫面裝飾
+[33mb0d5d7ac[m 新增"註冊帳號"功能(待後端API實作)
+[33m581e0472[m 新增"註冊帳號"區，並將username&password更改為中文
+[33mc986fa11[m 更新前端資訊
+[33m06bfd58b[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33md2b6a307[m 移除回上一頁手動連結
+[33m22a4b448[m 修改跳轉路徑為 ../index.html
+[33m3442b05f[m 加入權限檢查，未登入則自動跳回login
+[33m4173b5f7[m Merge branch 'main' of https://github.com/sam-l-112/SentientPet-AI
+[33m4a51bb2e[m update server.js app.get join
+[33m489e46ef[m 更新登入頁樣式與互動回饋
+[33m6937c1ca[m 更新登入頁語系與樣式
+[33mb8f3244b[m 更新前端 README 內部資訊
+[33mb67d7220[m 解決合併衝突，保留新版本
+[33mfa3424b8[m Connect frontend to Sam login/chat and sanitize output
+[33m8bddd0c4[m add logs
+[33m0d5e31cc[m api and ai token js ok
+[33ma233e11e[m api and web server setting
+[33me6e45be7[m add backend readme.md
+[33m54e2097d[m Update frontend chat demo UI
+[33mff852d82[m add backend md and frontend md
+[33m905c798c[m add nodemon --save-dev package.json setting
+[33m9de911c8[m add .env and  update setupDB path
+[33m7cb2c25f[m update information md
+[33m2bf50d24[m add file
+[33m438d1a2a[m first commit

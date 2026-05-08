@@ -34,3 +34,44 @@ Sentiment_Analysis 是一個情感分析（Sentiment Analysis）相關的 Python
   - 擴展 test/ 目錄，使用 pytest，並新增測試覆蓋率工具如 coverage.py。
   - 如果專案成長，可考慮新增 data/ 目錄存放訓練資料，或 config/ 存放配置檔案。
 - **使用情境**: 這個結構適合小型到中型 Python 專案，尤其在機器學習或 NLP 任務中（如情感分析）。如果您需要擴展功能（如新增模型訓練腳本），建議將其放在 src/ 下，並在 test/ 中添加對應測試。
+
+---
+# python version information
+```bash
+/home/prometheus/project/Sentiment_Analysis/.venv/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:307: 
+UserWarning: 
+Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+2.11.0+cu130
+```
+
+---
+# .venv 虛擬環境建設
+
+創建虛擬環境
+```bash
+python3 -m venv .venv
+```
+
+進入虛擬環境
+```bash
+source .venv/bin/activate
+```
+
+退出虛擬環境
+```bash
+deactivate
+```
+---
+
+# 查案安裝套件
+
+查看目前安裝那些套件 
+```bash
+pip list 
+```
+
+專業建議記錄起來 update
+```bash
+pip freeze > requirements.txt
+```

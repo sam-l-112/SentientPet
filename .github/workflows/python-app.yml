@@ -1,0 +1,39 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        # 建議開啟快取，加快後續執行速度
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # 確保安裝你的 requirements.txt
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # 手動確保測試工具與 dotenv 存在
+        pip install pytest python-dotenv
+
+    - name: Test with pytest
+      # 這裡加入環境變數設定，如果你的專案有用到 .env 資料
+      # 請在 GitHub Repo -> Settings -> Secrets 裡設定對應的數值
+      env:
+        # 範例：GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        PYTHONPATH: .
+      run: |
+        # 由於你的測試檔案在 test/ 之下，指定路徑執行
+        pytest test/test.py
