@@ -39,4 +39,4 @@ jobs:
         PYTHONPATH: .
       run: |
         # 由於你的測試檔案在 test/ 之下，指定路徑執行
-        pytest -m pytest test/test.py
+        pytest Sentiment_Analysis/test/test.py
