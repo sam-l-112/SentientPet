@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/Sentiment_Analysis/.venv/bin/python",
+  "python.pythonPath": "${workspaceFolder}/Sentiment_Analysis/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/Sentiment_Analysis",
+    "${workspaceFolder}/Sentiment_Analysis/src"
+  ],
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.diagnosticMode": "workspace"
+}
