@@ -1,12 +1,7 @@
 import json
-import os
-import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
+from src import analyzer
 
-import analyzer
 
 
 def test_safe_json_loads_parses_sentiment_json():

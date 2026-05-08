@@ -10,8 +10,9 @@ import readchar
 import torch
 from dotenv import load_dotenv
 
-from analyzer import AnalyzeError, analyze_message
-from display import (
+# Path search
+from src.analyzer import AnalyzeError, analyze_message
+from src.display import (
     init_console,
     render_analysis,
     render_block_summary,
@@ -19,7 +20,7 @@ from display import (
     render_info,
     render_startup_banner,
 )
-from history import ConversationHistory
+from src.history import ConversationHistory
 
 
 PAUSE_THRESHOLD_SEC = 2.0

@@ -36,7 +36,7 @@ jobs:
       # 請在 GitHub Repo -> Settings -> Secrets 裡設定對應的數值
       env:
         # 範例：GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        PYTHONPATH: .
+        PYTHONPATH: Sentiment_Analysis
       run: |
         # 由於你的測試檔案在 tests/ 之下，指定路徑執行
         pytest Sentiment_Analysis/tests
