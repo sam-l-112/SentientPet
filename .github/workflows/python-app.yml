@@ -28,6 +28,9 @@ jobs:
         # 手動確保測試工具與 dotenv 存在
         pip install pytest python-dotenv
 
+    - name: List files for debug
+      run: ls -R
+
     - name: Test with pytest
       # 這裡加入環境變數設定，如果你的專案有用到 .env 資料
       # 請在 GitHub Repo -> Settings -> Secrets 裡設定對應的數值
@@ -36,4 +39,4 @@ jobs:
         PYTHONPATH: .
       run: |
         # 由於你的測試檔案在 test/ 之下，指定路徑執行
-        pytest test/test.py
+        pytest -m pytest test/test.py
