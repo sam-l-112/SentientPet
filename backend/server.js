@@ -32,7 +32,6 @@ app.use(cors({
         process.env.FRONTEND_URL, 
         process.env.FRONTEND_URL_LH,
         process.env.FRONTEND_URL_NW,
-        process.env.FRONTEND_URL_sa,
         process.env.FRONTEND_URL_I,
     ].filter(Boolean),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -44,11 +43,11 @@ app.use(express.json())
 // --- API 路由 
 const authRoutes = require('./routes/auth')
 const aiRoutes   = require('./routes/ai')
-const Sentiment_Analysis = require('./routes/sentiment_analysis')
+const Sentiment_Analysis = require('./routes/sa')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/ai', aiRoutes)
-app.use('/api/sa', sentiment_analysis)
+app.use('/api/sa', Sentiment_Analysis)
 
 // 路由邏輯寫在nginx try_files
 app.get('/api/data', (req, res) => {

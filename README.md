@@ -71,28 +71,74 @@ npm install express mariadb
 
 ## Project Structure (Example)
 
-This project follows a simple MVC / layered structure:
+This project follows a simple MVC / layered structure. The current file layout is:
 
 ```
 backend/
   server.js
+  package.json
+  package-lock.json
+  README.md
+  docker-compose.yaml
+  dockerfile
+  ecosystem.config.js
+  .env
+  .gitignore
   config/
     database.js
-  routes/
-    auth.js
+    setupDB.js
   controllers/
+    aiController.js
     authController.js
+    chatController.js
+    saController.js
+    test.js
+  middleware/
+    authMiddleware.js
   models/
+    chatModel.js
+    petModel.js
     userModel.js
+  routes/
+    ai.js
+    auth.js
+    chat.js
+    pet.js
+    sa.js
+  services/
+    aiService.js
+  logs/
+    access.log
+  src/
+    a.ini
 frontend/
-  pages/
-    login.html
-    dashboard.html
-  js/
-    login.js
-    dashboard.js
+  home.html
+  index.html
+  README.md
+  .gitignore
   css/
+    emotionChart.css
+    home.css
+    login.css
+    register.css
     style.css
+  js/
+    chat.js
+    dashboard.js
+    emotionChart.js
+    login.js
+  pages/
+    dashboard.html
+    login.html
+  pet_selection/
+    pet_selection.html
+    pet_selection.css
+    pet_selection.js
+    pet_image/
+      Green Sprout.png
+      Pink Healer.png
+      Sunny Spark.png
+      pets.png
 ```
 
 ---
