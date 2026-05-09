@@ -236,6 +236,10 @@ pm2 reload server
 
 [Node.js API 安全驗證與環境部署指南 (JWT & Docker)](docs/Node.js%20API%20安全驗證與環境部署指南%20(JWT%20&%20Docker).md)
 
+[Ubuntu 背景執行 Python API (systemd) 與除錯指南](docs/Ubuntu%20背景執行%20Python%20API%20(systemd).md)
+
+[Linux UFW 防火牆維運與流量觀察筆記](docs/Linux%20UFW%20防火牆維運與流量觀察筆記.md)
+
 ---
 
 Happy building! If you'd like help expanding authentication, adding role-based access, or improving security, just say the word.

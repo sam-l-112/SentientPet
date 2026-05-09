@@ -4,15 +4,22 @@ import os
 import sys
 import time
 import json
-from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
-
 import readchar
 import torch
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify   
 
 # Path search
 from src.analyzer import AnalyzeError, analyze_message
+
+# Load environment variables from root .env and src/.env when available
+load_dotenv()
+root_dir = os.path.dirname(__file__)
+src_dotenv = os.path.join(root_dir, "src", ".env")
+if os.path.exists(src_dotenv):
+    load_dotenv(src_dotenv, override=False)
 from src.display import (
     init_console,
     render_analysis,
@@ -22,6 +29,54 @@ from src.display import (
     render_startup_banner,
 )
 from src.history import ConversationHistory
+
+load_dotenv()
+app = Flask(__name__)
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"success": False, "error": "請提供 JSON body"}), 400
+
+    text = (data.get('text') or '').strip()
+    if not text:
+        return jsonify({"success": False, "error": "text 欄位為必填"}), 400
+
+    history_last10 = data.get('history_last10') or []
+    typing = data.get('typing')
+    if not isinstance(typing, dict):
+        typing = {
+            "timestamps": [],
+            "duration_sec": 0.0,
+            "total_chars": len(text),
+            "wpm": 0,
+            "backspaces": 0,
+            "pauses": 0,
+            "hesitation_index": 0.0,
+        }
+
+    try:
+        if data.get('model'):
+            model = data.get('model')
+        elif os.getenv('HF_TOKEN'):
+            model = os.getenv('HF_MODEL_NAME_GEMINI', 'google/gemma-4-31B-it:novita')
+        elif os.getenv('OPENROUTER_API_KEY'):
+            model = 'openai/gpt-oss-120b:free'
+        else:
+            model = 'google/gemma-4-31B-it:novita'
+
+        analysis = analyze_message(
+            text=text,
+            history_last10=history_last10,
+            typing=typing,
+            model=model,
+        )
+        return jsonify({"success": True, "data": analysis})
+    except AnalyzeError as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": f"伺服器錯誤：{e}"}), 500
 
 
 PAUSE_THRESHOLD_SEC = 2.0
@@ -179,5 +234,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    if len(sys.argv) > 1 and sys.argv[1].lower() == 'cli':
+        raise SystemExit(main())
+
+    print("python server 啟動 API (port 5000)")
+    app.run(host='127.0.0.1', port=5000, debug=True)
 

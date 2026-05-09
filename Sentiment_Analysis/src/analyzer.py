@@ -13,15 +13,30 @@ class AnalyzeError(Exception):
 
 
 def _build_client() -> openai.OpenAI:
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise AnalyzeError("找不到 OPENROUTER_API_KEY。請在 .env 或環境變數中設定。")
+    hf_token = os.getenv("HF_TOKEN")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
 
-    # OpenAI Python SDK v1: client-level timeout is supported.
-    return openai.OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key,
-        timeout=30,
+    if hf_token:
+        hf_model_url = os.getenv("HF_MODEL_URL", "https://router.huggingface.co/v1")
+        if hf_model_url.endswith("/chat/completions"):
+            hf_model_url = hf_model_url[: -len("/chat/completions")]
+        hf_model_url = hf_model_url.rstrip("/")
+        return openai.OpenAI(
+            base_url=hf_model_url,
+            api_key=hf_token,
+            timeout=30,
+        )
+
+    if openrouter_key:
+        base_url = "https://openrouter.ai/api/v1"
+        return openai.OpenAI(
+            base_url=base_url,
+            api_key=openrouter_key,
+            timeout=30,
+        )
+
+    raise AnalyzeError(
+        "找不到 OPENROUTER_API_KEY 或 HF_TOKEN。請在 .env 或環境變數中設定。"
     )
 
 
@@ -79,6 +94,9 @@ def analyze_message(
     - 超時/限速：顯示「分析中，請稍候...」並自動 retry 一次（由上層印提示）
     """
     client = _build_client()
+
+    if os.getenv("HF_TOKEN") and not os.getenv("OPENROUTER_API_KEY"):
+        model = os.getenv("HF_MODEL_NAME_GEMINI", model)
 
     payload = {
         "text": text,

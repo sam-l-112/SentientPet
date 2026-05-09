@@ -3,12 +3,23 @@ from __future__ import annotations
 import json
 import sys
 import os
+# from flask import Flask, request, jsonify
+# from src.analyzer import analyze_emotion # 假設你的函數名
 
 # Path search
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src import analyzer
 
+# app = Flask(__name__)
+
+# # === API router ===
+# @app.route('/analyze', methods=['POST'])
+# def analyze():
+#     data = request.json
+#     text = data.get('text', '')
+    
+#     print(f"DEBUG: 收到來自 Node.js 的訊息 -> {text}")
 
 def test_safe_json_loads_parses_sentiment_json():
     raw_output = '''
@@ -50,3 +61,6 @@ def test_safe_json_loads_can_extract_json_from_noisy_text():
     data = analyzer._safe_json_loads(noisy_output)
 
     assert data["dominant_emotion"] == "sadness"
+
+# if __name__ == '__main__':
+#     app.run(host='127.0.0.1', port=5000, debug=True)
