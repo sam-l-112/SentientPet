@@ -182,7 +182,10 @@ pm2 reload server
 
 # Document
 
-[npm Security Audit](./doc/npm_Security_Audit.md)
+[npm Security Audit](docs/npm_Security_Audit.md)
+[Python 環境管理與套件紀錄指南](docs/python%20環境管理與套件紀錄指南.md)
+[PM2 進程管理與維護指南](docs/PM2%20進程管理與維護指南.md)
+[Node.js API 安全驗證與環境部署指南 (JWT & Docker)](docs/Node.js%20API%20安全驗證與環境部署指南%20(JWT%20&%20Docker).md)
 
 ---
 
