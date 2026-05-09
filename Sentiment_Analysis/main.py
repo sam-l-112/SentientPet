@@ -33,6 +33,7 @@ from src.history import ConversationHistory
 load_dotenv()
 app = Flask(__name__)
 
+# api 結構
 @app.route('/analyze', methods=['POST'])
 def analyze():
     data = request.get_json(silent=True)
@@ -236,7 +237,8 @@ def main() -> int:
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1].lower() == 'cli':
         raise SystemExit(main())
-
+    
+# api server python Start
     print("python server 啟動 API (port 5000)")
     app.run(host='127.0.0.1', port=5000, debug=True)
 

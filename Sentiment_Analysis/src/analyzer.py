@@ -11,7 +11,7 @@ import openai
 class AnalyzeError(Exception):
     pass
 
-
+# hf and openai setting
 def _build_client() -> openai.OpenAI:
     hf_token = os.getenv("HF_TOKEN")
     openrouter_key = os.getenv("OPENROUTER_API_KEY")
