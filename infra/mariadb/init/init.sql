@@ -56,6 +56,35 @@ CREATE TABLE messages (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 4. Sentiment Analysis messages 記錄
+CREATE TABLE Emotion_Tracker (
+    Emotion_id  INT NOT NULL    AUTO_INCREMENT  PRIMARY KEY,
+    cs_id       INT NOT NULL, -- 加入冗餘欄位，優化統計效能
+    mes_id      INT NOT NULL,
+
+    joy         SMALLINT CHECK (joy BETWEEN 0 AND 100),
+    sadness     SMALLINT CHECK (sadness BETWEEN 0 AND 100),
+    anger       SMALLINT CHECK (anger BETWEEN 0 AND 100),
+    fear        SMALLINT CHECK (fear BETWEEN 0 AND 100),
+    disgust     SMALLINT CHECK (disgust BETWEEN 0 AND 100),
+    surprise    SMALLINT CHECK (surprise BETWEEN 0 AND 100),
+    valence     SMALLINT CHECK (valence BETWEEN 0 AND 100),
+
+    stage       VARCHAR(10) CHECK (stage IN ('negative', 'neutral', 'positive')),
+
+    analyzed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_emotion_message
+        FOREIGN KEY (mes_id) REFERENCES messages (mes_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_emotion_session   
+        FOREIGN KEY (cs_id) REFERENCES  chat_sessions (cs_id) 
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- mes_id 因 UNIQUE 約束會自動建立索引 cs_id 整場對話的情緒曲線
+CREATE INDEX idx_emotion_cs_id ON Emotion_Tracker(cs_id);
+-- CREATE INDEX idx_emotion_mes_id ON Emotion_Tracker(mes_id);
+-- CREATE INDEX idx_emotion_cs_id ON Emotion_Tracker(cs_id);
 
 
 -- CREATE TABLE IF NOT EXISTS `users` (

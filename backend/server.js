@@ -2,6 +2,7 @@ require('dotenv').config() // .env setting
 
 const morgan = require("morgan")
 const express = require("express")
+const axios = require('axios');
 const path = require("path")
 const cors = require('cors') //處理跨域問題
 const fs = require('fs')
@@ -31,6 +32,7 @@ app.use(cors({
         process.env.FRONTEND_URL, 
         process.env.FRONTEND_URL_LH,
         process.env.FRONTEND_URL_NW,
+        process.env.FRONTEND_URL_sa,
         process.env.FRONTEND_URL_I,
     ].filter(Boolean),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -46,6 +48,7 @@ const Sentiment_Analysis = require('./routes/sentiment_analysis')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/sa', sentiment_analysis)
 
 // 路由邏輯寫在nginx try_files
 app.get('/api/data', (req, res) => {
