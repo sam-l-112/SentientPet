@@ -13,6 +13,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
 /* ── 面板內部捲動條 ─────────────────────────────────────── */
@@ -70,6 +71,22 @@
   margin: 6px 0 0;
 }
 
+/* ── 變化標示（上升/不變/下降） ─────────────────────────── */
+.ec-score-change,
+.ec-detail-change {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(127, 119, 221, 0.85);
+  letter-spacing: 0.02em;
+}
+
+.ec-detail-stage {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* ── 圖例 ────────────────────────────────────────────────── */
 .ec-legend {
   display: flex;
@@ -100,6 +117,29 @@
   height: 220px;
 }
 
+/* ── 趨勢圖（折線圖） ───────────────────────────────────── */
+.ec-trend-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ec-trend-kpi {
+  text-align: center;
+  padding: 6px 0 2px;
+}
+
+.ec-trend-wrap {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: linear-gradient(180deg, rgba(127,119,221,0.06), rgba(232,160,191,0.04));
+  border: 1px solid rgba(200, 180, 220, 0.22);
+  border-radius: 14px;
+  padding: 10px 10px 6px;
+  box-shadow: 0 10px 30px rgba(127,119,221,0.06);
+}
+
 /* ── 數值卡片格 ─────────────────────────────────────────── */
 .ec-cards {
   display: grid;
@@ -128,12 +168,126 @@
   line-height: 1;
 }
 
+/* 詳細 overlay 內的卡片稍微加強一致性 */
+.ec-cards--detail {
+  margin-top: 2px;
+}
+
 /* ── 底部提示文字 ────────────────────────────────────────── */
 .ec-hint {
   font-size: 10px;
   color: #c8bcd8;
   text-align: center;
   margin: 0;
+}
+
+/* ── 詳細資訊 Overlay（右側滑入） ───────────────────────── */
+.ec-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  max-width: 92vw;
+  height: 100dvh;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.ec-overlay-panel {
+  height: 100%;
+  background: #ffffff;
+  border-left: 1px solid rgba(200, 180, 220, 0.24);
+  box-shadow: -20px 0 60px rgba(79, 65, 109, 0.18);
+  transform: translateX(105%);
+  transition: transform 240ms ease;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.ec-overlay--open .ec-overlay-panel {
+  transform: translateX(0);
+}
+
+.ec-overlay-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ec-overlay-titlewrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ec-overlay-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a6d8a;
+  letter-spacing: 0.02em;
+}
+
+.ec-overlay-sub {
+  margin: 0;
+  font-size: 10px;
+  color: #c1b2d6;
+}
+
+.ec-overlay-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(200, 180, 220, 0.35);
+  background: linear-gradient(180deg, rgba(127,119,221,0.08), rgba(232,160,191,0.06));
+  color: #7F77DD;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ec-overlay-close:hover {
+  filter: brightness(0.98);
+}
+
+.ec-detail-score-wrap {
+  text-align: center;
+  padding: 8px 0 2px;
+}
+
+.ec-detail-score {
+  margin: 0;
+  font-size: 52px;
+  font-weight: 700;
+  color: #4a3f5c;
+  line-height: 1;
+}
+
+.ec-detail-stage {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ec-detail-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.ec-detail-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: #fff;
+  border: 1px solid rgba(200, 180, 220, 0.22);
+  border-radius: 14px;
+  padding: 8px 8px 4px;
 }
 
 /* ── RWD：畫面太窄時隱藏圖表面板 ───────────────────────── */

@@ -1,11 +1,13 @@
 /* ═══════════════════════════════════════════════════════════
-   emotionChart.js — 六大情緒雷達圖模組
+   emotionChart.js — 情緒趨勢圖 + 詳細情緒面板
    ───────────────────────────────────────────────────────────
-   使用方式：
-     EmotionChart.update({ joy: 72, sadness: 18, anger: 5,
-                           fear: 10, disgust: 3, surprise: 40 })
+   公開 API（介面固定）：
+     EmotionChart.update({
+       joy, sadness, anger, fear, disgust, surprise, valence, stage
+     })
 
-   數值範圍：0 ~ 100
+   - 主面板：綜合情緒分數折線圖（0~100）
+   - 點擊資料點：右側滑入詳細 overlay（雷達圖 + 六格情緒 + 大字分數 + 階段）
    ═══════════════════════════════════════════════════════════ */
 
 const EmotionChart = (() => {
@@ -23,7 +25,16 @@ const EmotionChart = (() => {
   /* ── 預設初始數值（全部 0，代表尚未分析） ──────────── */
   const DEFAULT_DATA = { joy: 0, sadness: 0, anger: 0, fear: 0, disgust: 0, surprise: 0 };
 
-  let chartInstance = null;
+  const STORAGE_KEY = 'sentientpet_emotion_history_v1';
+
+  const PANEL_WIDTH = 340;
+  const trendLabels = [];
+  const trendScores = [];
+  const history = []; // 每次對話的完整 scores（用於點擊後顯示）
+
+  let trendChartInstance = null;
+  let detailRadarInstance = null;
+  let lastStageColor = '#BA7517';
 
   /* ── 建立面板 HTML ────────────────────────────────────── */
   function buildPanel() {
@@ -38,58 +49,263 @@ const EmotionChart = (() => {
 
         <p class="ec-title">情緒分析</p>
 
-        <!-- 圖例 -->
-        <div class="ec-legend">
-          ${EMOTIONS.map(e => `
-            <span class="ec-legend-item">
-              <span class="ec-dot" style="background:${e.color}"></span>
-              ${e.label.split(' ')[0]}
-            </span>
-          `).join('')}
+        <div class="ec-trend-head">
+          <div class="ec-trend-kpi">
+            <p class="ec-score-label">最新綜合分數</p>
+            <p class="ec-score-value" id="ec-score">50</p>
+            <p class="ec-score-stage" id="ec-stage">中性</p>
+            <p class="ec-score-change" id="ec-change">變化-不變</p>
+          </div>
+          <p class="ec-hint">點擊折線圖的資料點可查看詳細</p>
         </div>
 
-        <!-- 雷達圖 -->
-        <div class="ec-canvas-wrap">
-          <canvas id="ec-canvas"
+        <div class="ec-trend-wrap">
+          <canvas id="ec-trend-canvas"
             role="img"
-            aria-label="六大情緒雷達圖，顯示快樂、悲傷、憤怒、恐懼、厭惡、驚訝六個維度的強度數值">
-            六大情緒雷達圖
+            aria-label="綜合情緒分數趨勢折線圖，X 軸為對話次數，Y 軸為 0 到 100 分">
+            綜合情緒分數趨勢折線圖
           </canvas>
         </div>
 
-        <!-- 綜合分數區塊 -->
-        <div class="ec-score-wrap">
-          <p class="ec-score-label">情緒狀態</p>
-          <p class="ec-score-value" id="ec-score">50</p>
-          <p class="ec-score-stage" id="ec-stage">中性</p>
-        </div>
-        
-        <!-- 數值卡片 -->
-        <div class="ec-cards">
-          ${EMOTIONS.map(e => `
-            <div class="ec-card">
-              <p class="ec-card-label">${e.label.split(' ')[0]}</p>
-              <p class="ec-card-value" id="ec-val-${e.key}">0</p>
+      </div>
+
+      <!-- 詳細資訊 Overlay（點擊折線圖資料點後顯示） -->
+      <div class="ec-overlay" id="ec-overlay" aria-hidden="true">
+        <div class="ec-overlay-panel" role="dialog" aria-label="該次對話情緒詳細資訊">
+          <div class="ec-overlay-header">
+            <div class="ec-overlay-titlewrap">
+              <p class="ec-overlay-title" id="ec-detail-title">第 1 次對話</p>
+              <p class="ec-overlay-sub" id="ec-detail-sub">情緒詳細資訊</p>
             </div>
-          `).join('')}
+            <button class="ec-overlay-close" id="ec-overlay-close" type="button" aria-label="關閉詳細資訊">×</button>
+          </div>
+
+          <div class="ec-detail-score-wrap">
+            <p class="ec-score-label">綜合情緒分數</p>
+            <p class="ec-detail-score" id="ec-detail-score">50</p>
+            <p class="ec-detail-stage" id="ec-detail-stage">中性</p>
+            <p class="ec-detail-change" id="ec-detail-change">變化-不變</p>
+          </div>
+
+          <div class="ec-detail-legend">
+            ${EMOTIONS.map(e => `
+              <span class="ec-legend-item">
+                <span class="ec-dot" style="background:${e.color}"></span>
+                ${e.label.split(' ')[0]}
+              </span>
+            `).join('')}
+          </div>
+
+          <div class="ec-detail-canvas-wrap">
+            <canvas id="ec-detail-radar"
+              role="img"
+              aria-label="六大情緒雷達圖詳細資訊">
+              六大情緒雷達圖
+            </canvas>
+          </div>
+
+          <div class="ec-cards ec-cards--detail">
+            ${EMOTIONS.map(e => `
+              <div class="ec-card">
+                <p class="ec-card-label">${e.label.split(' ')[0]}</p>
+                <p class="ec-card-value" id="ec-detail-val-${e.key}">0</p>
+              </div>
+            `).join('')}
+          </div>
         </div>
-
-        <p class="ec-hint">每次對話後自動更新</p>
-
       </div>
     `;
+
+    const closeBtn = document.getElementById('ec-overlay-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeDetailOverlay);
   }
 
-  /* ── 建立 Chart.js 雷達圖 ─────────────────────────────── */
-  function buildChart() {
-    const canvas = document.getElementById('ec-canvas');
+  function safeParseJSON(text) {
+    try { return JSON.parse(text); } catch { return null; }
+  }
+
+  function persistToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, history }));
+    } catch (e) {
+      console.warn('[EmotionChart] localStorage 寫入失敗：', e);
+    }
+  }
+
+  function loadFromStorage() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+
+    const parsed = safeParseJSON(raw);
+    const saved = parsed?.history;
+    if (!Array.isArray(saved) || !saved.length) return;
+
+    // 清空現有並重建
+    trendLabels.length = 0;
+    trendScores.length = 0;
+    history.length = 0;
+
+    saved.forEach((scores, i) => {
+      history.push(scores);
+      const values = EMOTIONS.map(e => clamp01to100(scores?.[e.key]));
+      const score = computeCompositeScore(values, scores);
+      trendLabels.push(`第${i + 1}次`);
+      trendScores.push(score);
+    });
+
+    if (trendChartInstance) trendChartInstance.update();
+    updateLatestKPI();
+  }
+
+  function clamp01to100(n) {
+    const v = Number(n);
+    if (Number.isNaN(v)) return 0;
+    return Math.min(100, Math.max(0, Math.round(v)));
+  }
+
+  function normalizeStage(stage, score) {
+    const s = String(stage ?? '').trim().toLowerCase();
+    if (s) {
+      if (['positive', 'pos', 'p', '正面', '正向', '好'].includes(s)) return '正面';
+      if (['neutral', 'neu', 'n', '中性', '一般'].includes(s)) return '中性';
+      if (['negative', 'neg', 'm', '負面', '負向', '差'].includes(s)) return '負面';
+    }
+    if (score <= 40) return '負面';
+    if (score <= 70) return '中性';
+    return '正面';
+  }
+
+  function stageToColor(stage) {
+    if (stage === '負面') return '#E24B4A';
+    if (stage === '正面') return '#1D9E75';
+    return '#BA7517';
+  }
+
+  function computeCompositeScore(values, scores) {
+    // 若後端有給 valence（0~100）就以它為主；否則沿用原先的加權邏輯（基準 50）
+    const val = Number(scores?.valence);
+    if (!Number.isNaN(val)) return clamp01to100(val);
+    return clamp01to100(50 + values[0] * 0.5 - values[1] * 0.3 - values[2] * 0.3 - values[3] * 0.2 - values[4] * 0.2);
+  }
+
+  function computeChangeText(currScore, prevScore) {
+    if (typeof currScore !== 'number' || Number.isNaN(currScore)) return '變化-不變';
+    if (typeof prevScore !== 'number' || Number.isNaN(prevScore)) return '變化-不變';
+    if (currScore > prevScore) return '變化-上升';
+    if (currScore < prevScore) return '變化-下降';
+    return '變化-不變';
+  }
+
+  function updateLatestKPI() {
+    const scoreEl = document.getElementById('ec-score');
+    const stageEl = document.getElementById('ec-stage');
+    const changeEl = document.getElementById('ec-change');
+
+    if (!trendScores.length) {
+      if (scoreEl) scoreEl.textContent = '50';
+      if (stageEl) {
+        stageEl.textContent = '中性';
+        stageEl.style.color = stageToColor('中性');
+      }
+      if (changeEl) changeEl.textContent = '變化-不變';
+      return;
+    }
+
+    const curr = trendScores[trendScores.length - 1];
+    const prev = trendScores.length >= 2 ? trendScores[trendScores.length - 2] : curr;
+    const record = history[history.length - 1] ?? {};
+    const stage = normalizeStage(record.stage, curr);
+    const color = stageToColor(stage);
+    lastStageColor = color;
+
+    if (scoreEl) scoreEl.textContent = String(curr);
+    if (stageEl) {
+      stageEl.textContent = stage;
+      stageEl.style.color = color;
+    }
+    if (changeEl) changeEl.textContent = computeChangeText(curr, prev);
+  }
+
+  /* ── 建立 Chart.js 趨勢折線圖 ─────────────────────────── */
+  function buildTrendChart() {
+    const canvas = document.getElementById('ec-trend-canvas');
+    if (!canvas) return;
+
+    const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(180,140,200,0.28)';
+    const labelColor = isDark ? 'rgba(255,255,255,0.72)' : '#7a6d8a';
+    const primary = '#7F77DD';
+    const accent = '#e8a0bf';
+
+    trendChartInstance = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: '綜合情緒分數',
+          data: trendScores,
+          borderColor: primary,
+          backgroundColor: 'rgba(127,119,221,0.12)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          pointBorderWidth: 2,
+          pointBackgroundColor: accent,
+          pointBorderColor: isDark ? '#1a1a2e' : '#ffffff',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 450, easing: 'easeInOutQuart' },
+        interaction: { mode: 'nearest', intersect: true },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              title: items => items?.[0]?.label ?? '',
+              label: ctx => `分數：${Math.round(ctx.parsed.y)}`
+            }
+          }
+        },
+        onClick: (evt) => {
+          const points = trendChartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+          if (!points?.length) return;
+          openDetailOverlay(points[0].index);
+        },
+        onHover: (evt, elements) => {
+          const el = evt?.native?.target;
+          if (el && el.style) el.style.cursor = elements?.length ? 'pointer' : 'default';
+        },
+        scales: {
+          x: {
+            ticks: { color: labelColor, maxRotation: 0, autoSkip: true },
+            grid: { display: false }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 20, color: labelColor },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+
+  /* ── 建立 Chart.js 詳細雷達圖 ─────────────────────────── */
+  function buildDetailRadarChart() {
+    const canvas = document.getElementById('ec-detail-radar');
     if (!canvas) return;
 
     const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
     const gridColor   = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(180,140,200,0.35)';
     const labelColor  = isDark ? '#bbb' : '#7a6d8a';
 
-    chartInstance = new Chart(canvas.getContext('2d'), {
+    detailRadarInstance = new Chart(canvas.getContext('2d'), {
       type: 'radar',
       data: {
         labels: EMOTIONS.map(e => e.label),
@@ -137,48 +353,110 @@ const EmotionChart = (() => {
     });
   }
 
-  /* ── 更新圖表與數值卡片 ──────────────────────────────── */
+  function openDetailOverlay(index) {
+    const overlay = document.getElementById('ec-overlay');
+    const panel = document.getElementById('emotion-panel');
+    if (!overlay || !panel) return;
+
+    const record = history[index];
+    if (!record) return;
+
+    const values = EMOTIONS.map(e => clamp01to100(record[e.key]));
+    const score = computeCompositeScore(values, record);
+    const stage = normalizeStage(record.stage, score);
+    const color = stageToColor(stage);
+    lastStageColor = color;
+    const prevScore = index >= 1 ? trendScores[index - 1] : score;
+    const changeText = computeChangeText(score, prevScore);
+
+    const titleEl = document.getElementById('ec-detail-title');
+    if (titleEl) titleEl.textContent = `第 ${index + 1} 次對話`;
+
+    const scoreEl = document.getElementById('ec-detail-score');
+    const stageEl = document.getElementById('ec-detail-stage');
+    const changeEl = document.getElementById('ec-detail-change');
+    if (scoreEl) scoreEl.textContent = String(score);
+    if (stageEl) {
+      stageEl.textContent = stage;
+      stageEl.style.color = color;
+    }
+    if (changeEl) changeEl.textContent = changeText;
+
+    EMOTIONS.forEach((e, i) => {
+      const el = document.getElementById(`ec-detail-val-${e.key}`);
+      if (el) el.textContent = String(values[i]);
+    });
+
+    if (detailRadarInstance) {
+      detailRadarInstance.data.datasets[0].data = values;
+      detailRadarInstance.update();
+    }
+
+    overlay.classList.add('ec-overlay--open');
+    overlay.setAttribute('aria-hidden', 'false');
+    panel.classList.add('ec-has-overlay');
+  }
+
+  function closeDetailOverlay() {
+    const overlay = document.getElementById('ec-overlay');
+    const panel = document.getElementById('emotion-panel');
+    if (!overlay || !panel) return;
+    overlay.classList.remove('ec-overlay--open');
+    overlay.setAttribute('aria-hidden', 'true');
+    panel.classList.remove('ec-has-overlay');
+  }
+
+  /* ── 更新趨勢圖與最新 KPI ─────────────────────────────── */
   function update(scores) {
-    if (!chartInstance) {
+    if (!trendChartInstance) {
       console.warn('[EmotionChart] 圖表尚未初始化，請先呼叫 EmotionChart.init()');
       return;
     }
 
-    /* 把傳入的 scores 安全地映射到六個情緒 */
-    const values = EMOTIONS.map(e => {
-      const v = Number(scores[e.key]);
-      return isNaN(v) ? 0 : Math.min(100, Math.max(0, Math.round(v)));
-    });
+    // 保存原始資料（用於點擊後顯示詳細）
+    history.push({ ...scores });
 
-    /* 更新雷達圖數據 */
-    chartInstance.data.datasets[0].data = values;
-    chartInstance.update();
+    const values = EMOTIONS.map(e => clamp01to100(scores?.[e.key]));
+    const score = computeCompositeScore(values, scores);
+    const stage = normalizeStage(scores?.stage, score);
+    const color = stageToColor(stage);
+    lastStageColor = color;
 
-    /* 更新數值卡片 */
-    EMOTIONS.forEach((e, i) => {
-      const el = document.getElementById(`ec-val-${e.key}`);
-      if (el) el.textContent = values[i];
-    });
+    const n = trendScores.length + 1;
+    trendLabels.push(`第${n}次`);
+    trendScores.push(score);
 
-    // 加權計算綜合情緒分數：快樂正向、負面情緒扣分、基準為 50
-    const score = Math.min(100, Math.max(0, Math.round(
-      50 + values[0]*0.5 - values[1]*0.3 - values[2]*0.3 - values[3]*0.2 - values[4]*0.2
-    )));
-    // 更新綜合分數數字
-    const scoreEl = document.getElementById('ec-score');
-    const stageEl = document.getElementById('ec-stage');
-    if (scoreEl) scoreEl.textContent = score;
-    // 根據分數區間更新階段標示與顏色
-    if (stageEl) {
-      if (score <= 40) { stageEl.textContent = '負面'; stageEl.style.color = '#E24B4A'; }
-      else if (score <= 70) { stageEl.textContent = '中性'; stageEl.style.color = '#BA7517'; }
-      else { stageEl.textContent = '正面'; stageEl.style.color = '#1D9E75'; }
-    }
+    trendChartInstance.update();
+
+    // 持久化（F5/關掉也保留）
+    persistToStorage();
+
+    // 更新右側 KPI（最新分數、階段、變化）
+    updateLatestKPI();
   }
 
   /* ── 重置為全 0 ──────────────────────────────────────── */
   function reset() {
-    update(DEFAULT_DATA);
+    // 清空趨勢資料
+    trendLabels.length = 0;
+    trendScores.length = 0;
+    history.length = 0;
+
+    if (trendChartInstance) trendChartInstance.update();
+    closeDetailOverlay();
+
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+
+    // 重置 KPI
+    const scoreEl = document.getElementById('ec-score');
+    const stageEl = document.getElementById('ec-stage');
+    const changeEl = document.getElementById('ec-change');
+    if (scoreEl) scoreEl.textContent = '50';
+    if (stageEl) {
+      stageEl.textContent = '中性';
+      stageEl.style.color = stageToColor('中性');
+    }
+    if (changeEl) changeEl.textContent = '變化-不變';
   }
 
   /* ── 初始化（建面板 + 建圖表） ───────────────────────── */
@@ -187,12 +465,18 @@ const EmotionChart = (() => {
 
     /* 等 Chart.js 載入後才建圖表 */
     if (typeof Chart !== 'undefined') {
-      buildChart();
+      buildTrendChart();
+      buildDetailRadarChart();
+      loadFromStorage();
     } else {
       /* Chart.js 還沒載入，等 script onload */
       const script = document.getElementById('ec-chartjs-cdn');
       if (script) {
-        script.addEventListener('load', buildChart);
+        script.addEventListener('load', () => {
+          buildTrendChart();
+          buildDetailRadarChart();
+          loadFromStorage();
+        });
       } else {
         console.warn('[EmotionChart] 找不到 Chart.js，請確認 index.html 有引入');
       }
