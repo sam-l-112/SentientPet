@@ -4,13 +4,33 @@ const messagesEl = document.getElementById("messages");
 const welcomeEl = document.getElementById("welcome");
 const inputEl = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
+const headerUsernameEl = document.getElementById("header-username");
+const logoutBtn = document.getElementById("logoutBtn");
 let history = [];
 let currentCsId = null;
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  // 注意：current_cs_id 不要清除，保留讓使用者下次登入能繼續同一個對話
+  window.location.href = "pages/login.html";
+}
 
 // 頁面載入時執行：檢查登入狀態，有舊對話則載入，否則建立新對話
 async function init() {
   const token = localStorage.getItem("token");
   if (!token) { window.location.href = "pages/login.html"; return; }
+
+  // 顯示使用者名稱（右上角）
+  try {
+    const userRaw = localStorage.getItem("user");
+    const user = userRaw ? JSON.parse(userRaw) : null;
+    const username = user?.username ?? "";
+    if (headerUsernameEl) headerUsernameEl.textContent = username ? username : "";
+  } catch (e) {
+    if (headerUsernameEl) headerUsernameEl.textContent = "";
+  }
+
   currentCsId = localStorage.getItem("current_cs_id");
   // 排除 localStorage 存到 "undefined" 字串的情況
   if (currentCsId === "undefined") currentCsId = null;
@@ -31,13 +51,30 @@ async function handleSend() {
   showTyping();
 
   try {
-    let reply = await callAPI([...history]);
+    let { reply, mes_id } = await callAPI([...history])
     if (window.toTraditional) reply = window.toTraditional(reply);
     
     removeTyping();
     appendMessage("bot", reply);
     history.push({ role: "assistant", content: reply });
-    analyzeEmotion(reply);
+    // 呼叫後端情緒分析 API
+    if (mes_id) {
+      const token = localStorage.getItem('token')
+      const saRes = await fetch(`${API_BASE}/api/sa`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          cs_id: Number(currentCsId), 
+          mes_id: mes_id, 
+          content: reply 
+        })
+      })
+      const saData = await saRes.json()
+      if (saData.success) EmotionChart.update(saData.data)
+    }
   } catch (err) {
     removeTyping();
     appendMessage("bot", `⚠️ ${err.message}`);
@@ -68,8 +105,11 @@ async function callAPI(messages) {
   const rawText = await res.text();
   try {
     const data = JSON.parse(rawText);
-    return data.success ? sanitizeAnswer(data.reply) : sanitizeAnswer(rawText);
-  } catch (e) { return sanitizeAnswer(rawText); }
+    return {
+      reply: data.success ? sanitizeAnswer(data.reply) : sanitizeAnswer(rawText),
+      mes_id: data.mes_id || null
+    }
+  } catch (e) { return { reply: sanitizeAnswer(rawText), mes_id: null }; }
 }
 
 // 向後端建立新的對話 session，取得 cs_id 並存入 localStorage
@@ -91,7 +131,7 @@ async function loadHistory(csId) {
   const token = localStorage.getItem("token");
   if (welcomeEl) welcomeEl.style.display = "none";
   // 依 session_time 取得對話歷史紀錄
-  const res = await fetch(`${API_BASE}/api/ai/session/${encodeURIComponent(csId)}/messages`, {
+  const res = await fetch(`${API_BASE}/api/ai/sessions/${encodeURIComponent(csId)}/messages`, {
     headers: { "Authorization": `Bearer ${token}` }
   });
   const data = await res.json();
@@ -129,29 +169,9 @@ function removeTyping() { document.getElementById("typing-row")?.remove(); }
 // ── 事件監聽：Enter 送出、按鈕點擊 ──
 inputEl.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } });
 sendBtn.addEventListener("click", handleSend);
+logoutBtn?.addEventListener("click", logout);
 
 // ══════════════════════════════════════════════════════════════
 // 頁面載入時執行初始化
 // ══════════════════════════════════════════════════════════════
 init();
-
-// 對 AI 回覆文字進行關鍵字情緒分析，計算六大情緒分數並更新雷達圖面板
-async function analyzeEmotion(text) {
-  const scores = { joy: 0, sadness: 0, anger: 0, fear: 0, disgust: 0, surprise: 0 };
-
-  const keywords = {
-    joy:      ["開心", "快樂", "高興", "棒", "讚", "好玩", "哈哈", "😊", "😄", "喜歡"],
-    sadness:  ["難過", "傷心", "哭", "悲", "痛", "失落", "沮喪", "😢", "😭"],
-    anger:    ["生氣", "憤怒", "煩", "討厭", "氣死", "幹", "怒", "😠", "😡"],
-    fear:     ["害怕", "恐懼", "擔心", "緊張", "焦慮", "不安", "怕", "😨", "😰"],
-    disgust:  ["噁心", "厭惡", "反感", "噁", "惡心", "🤢", "😖"],
-    surprise: ["驚訝", "竟然", "沒想到", "真的嗎", "哇", "居然", "😲", "😮"]
-  };
-
-  for (const [emotion, words] of Object.entries(keywords)) {
-    const count = words.filter(w => text.includes(w)).length;
-    scores[emotion] = Math.min(100, count * 30);
-  }
-
-  EmotionChart.update(scores);
-}
