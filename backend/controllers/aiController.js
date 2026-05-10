@@ -111,6 +111,7 @@ exports.chat = async (req, res) => {
              VALUES (?, 'user', ?)`,
             [cs_id, content]
         )
+        const user_mes_id = Number(userInsertResult.insertId);
 
         // 2. 取得歷史訊息
         // mariadb 不需要解構
@@ -123,8 +124,7 @@ exports.chat = async (req, res) => {
         )
 
         // 3. 組合 system prompt
-        let systemPrompt =
-            '你是一個友善、樂於助人的虛擬寵物，請以口語化、自然且簡潔的繁體中文回答，不需要顯示思考過程。\n'
+        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物... Communication at zh-Tw。\n'
 
         // 4. 組合 messages
         const messages = history.map(m => ({
@@ -140,9 +140,16 @@ exports.chat = async (req, res) => {
             `INSERT INTO messages (cs_id, role, content)
              VALUES (?, 'assistant', ?)`,
             [cs_id , aiReply]
-        )
+        );
 
-        res.json({ success: true, reply: aiReply })
+        const ai_mes_id = Number(aiInsertResult.insertId);
+
+        res.json({ 
+            success: true, 
+            reply: aiReply,
+            mes_id: ai_mes_id,
+            user_mes_id: user_mes_id
+         })
 
     } catch (err) {
         console.error('--- chat 發生錯誤 ---', err.message)
