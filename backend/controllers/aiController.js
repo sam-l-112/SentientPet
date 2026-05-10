@@ -106,7 +106,7 @@ exports.chat = async (req, res) => {
         }
 
         // 1. 存入使用者訊息
-        await pool.query(
+        const userInsertResult =  await pool.query(
             `INSERT INTO messages (cs_id, role, content)
              VALUES (?, 'user', ?)`,
             [cs_id, content]
@@ -136,7 +136,7 @@ exports.chat = async (req, res) => {
         const aiReply = await aiService.callAI(messages, systemPrompt)
 
         // 6. 存 AI
-        await pool.query(
+        const aiInsertResult = await pool.query(
             `INSERT INTO messages (cs_id, role, content)
              VALUES (?, 'assistant', ?)`,
             [cs_id , aiReply]
