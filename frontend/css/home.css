@@ -37,9 +37,10 @@ body {
     left: 50%;
     transform: translateX(-50%);
     padding: 10px 20px;
-    background-color: #007bff;
+    background: linear-gradient(135deg, #E87845 0%, #D3542A 100%);
     color: white;
     border: none;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(211, 84, 42, .3);
 }

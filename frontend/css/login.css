@@ -10,50 +10,9 @@ body.login-page {
   align-items: center;
   justify-content: center;
   padding: 24px 16px 32px;
-  background: #f8f4fc;
+  background: transparent;
   overflow: hidden;
   position: relative;
-}
-
-/* ── Blob 裝飾背景 ── */
-body.login-page::before {
-  content: '';
-  position: fixed;
-  width: 420px; height: 420px;
-  background: radial-gradient(circle at 40% 40%, #b8e0f7 0%, #a0d0f0 50%, transparent 75%);
-  top: -100px; left: -80px;
-  border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
-  filter: blur(20px);
-  opacity: .6;
-  pointer-events: none;
-  animation: blobDrift 8s ease-in-out infinite alternate;
-}
-body.login-page::after {
-  content: '';
-  position: fixed;
-  width: 360px; height: 360px;
-  background: radial-gradient(circle at 60% 60%, #f4b8d4 0%, #f0a0c8 55%, transparent 78%);
-  bottom: -80px; right: -60px;
-  border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%;
-  filter: blur(20px);
-  opacity: .55;
-  pointer-events: none;
-  animation: blobDrift 10s ease-in-out infinite alternate-reverse;
-}
-body.login-page .blob-yellow {
-  position: fixed;
-  width: 240px; height: 220px;
-  background: radial-gradient(circle, #fcf0a0 0%, #f8e880 60%, transparent 80%);
-  bottom: 80px; left: -30px;
-  border-radius: 50% 40% 60% 30% / 40% 60% 40% 60%;
-  filter: blur(18px);
-  opacity: .55;
-  pointer-events: none;
-  animation: blobDrift 12s ease-in-out infinite alternate;
-}
-@keyframes blobDrift {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(12px, -18px) scale(1.04); }
 }
 
 /* ── 登入卡片 ── */
@@ -61,12 +20,12 @@ body.login-page .blob-yellow {
   width: 100%;
   max-width: 390px;
   padding: 36px 32px 30px;
-  background: rgba(255,255,255,.88);
+  background: rgba(245, 240, 232, 0.75);
   border: 1px solid rgba(220,190,240,.25);
   border-radius: 28px;
   box-shadow: 0 8px 48px rgba(180,140,220,.15), 0 2px 16px rgba(180,140,220,.08);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   position: relative;
   z-index: 1;
   animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
@@ -128,8 +87,8 @@ body.login-page .blob-yellow {
 }
 .login-container input[type="text"]:focus,
 .login-container input[type="password"]:focus {
-  border-color: rgba(232,160,191,.65);
-  box-shadow: 0 0 0 3px rgba(232,160,191,.15);
+  border-color: rgba(74, 144, 196, .55);
+  box-shadow: 0 0 0 3px rgba(74, 144, 196, .12);
 }
 
 /* ── 送出按鈕 ── */
@@ -140,19 +99,19 @@ body.login-page .blob-yellow {
   font-size: .95rem;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #f0b0cc 0%, #e890b8 100%);
+  background: linear-gradient(135deg, #E87845 0%, #D3542A 100%);
   border: none;
   border-radius: 16px;
   cursor: pointer;
   transition: opacity .2s, transform .1s, box-shadow .2s;
   width: 100%;
   max-width: 300px;
-  box-shadow: 0 4px 20px rgba(240,140,180,.35);
+  box-shadow: 0 4px 20px rgba(211, 84, 42, .35);
   letter-spacing: .02em;
 }
 .login-container button[type="submit"]:hover {
   opacity: .9;
-  box-shadow: 0 6px 24px rgba(240,140,180,.45);
+  box-shadow: 0 6px 24px rgba(211, 84, 42, .45);
 }
 .login-container button[type="submit"]:active {
   transform: scale(.97);
@@ -179,11 +138,11 @@ body.login-page .blob-yellow {
   color: #a89bbf;
 }
 .register-link a {
-  color: #d080b0;
+  color: #2E6FA8;
   text-decoration: none;
   font-weight: 700;
   transition: color .2s;
 }
 .register-link a:hover {
-  color: #e890b8;
+  color: #1E5A8C;
 }

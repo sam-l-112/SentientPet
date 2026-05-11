@@ -70,8 +70,8 @@
 }
 .register-container input[type="text"]:focus,
 .register-container input[type="password"]:focus {
-  border-color: rgba(232,160,191,.65);
-  box-shadow: 0 0 0 3px rgba(232,160,191,.15);
+  border-color: rgba(74, 144, 196, .55);
+  box-shadow: 0 0 0 3px rgba(74, 144, 196, .12);
 }
 
 /* ── 送出按鈕 ── */
@@ -82,19 +82,19 @@
   font-size: .95rem;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #f0b0cc 0%, #e890b8 100%);
+  background: linear-gradient(135deg, #E87845 0%, #D3542A 100%);
   border: none;
   border-radius: 16px;
   cursor: pointer;
   transition: opacity .2s, transform .1s, box-shadow .2s;
   width: 100%;
   max-width: 300px;
-  box-shadow: 0 4px 20px rgba(240,140,180,.35);
+  box-shadow: 0 4px 20px rgba(211, 84, 42, .35);
   letter-spacing: .02em;
 }
 .register-container button[type="submit"]:hover {
   opacity: .9;
-  box-shadow: 0 6px 24px rgba(240,140,180,.45);
+  box-shadow: 0 6px 24px rgba(211, 84, 42, .45);
 }
 .register-container button[type="submit"]:active {
   transform: scale(.97);
@@ -121,11 +121,11 @@
   color: #a89bbf;
 }
 .login-link a {
-  color: #d080b0;
+  color: #2E6FA8;
   text-decoration: none;
   font-weight: 700;
   transition: color .2s;
 }
 .login-link a:hover {
-  color: #e890b8;
+  color: #1E5A8C;
 }

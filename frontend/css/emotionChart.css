@@ -8,7 +8,7 @@
   width: 340px;
   min-width: 280px;
   height: 100dvh;
-  background: #ffffff;
+  background: rgba(245, 240, 232, 0.50);
   border-left: 1px solid rgba(200, 180, 220, 0.2);
   overflow-y: auto;
   overflow-x: hidden;
@@ -243,9 +243,9 @@
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  border: 1px solid rgba(200, 180, 220, 0.35);
-  background: linear-gradient(180deg, rgba(127,119,221,0.08), rgba(232,160,191,0.06));
-  color: #7F77DD;
+  border: 1px solid rgba(90, 130, 180, 0.38);
+  background: linear-gradient(180deg, rgba(74, 144, 196, 0.14), rgba(123, 104, 200, 0.1));
+  color: #4A6FA8;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;

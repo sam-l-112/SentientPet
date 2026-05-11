@@ -433,6 +433,8 @@ const EmotionChart = (() => {
 
     // 更新右側 KPI（最新分數、階段、變化）
     updateLatestKPI();
+
+    if (window.LavaBg) LavaBg.update(scores);
   }
 
   /* ── 重置為全 0 ──────────────────────────────────────── */

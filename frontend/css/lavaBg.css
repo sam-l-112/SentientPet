@@ -1,0 +1,157 @@
+/* ════════════════════════════════════════
+   lavaBg.css — 飽和熔岩光暈背景（參考圖風格）
+   ════════════════════════════════════════ */
+
+#lava-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #F5F0E8;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.lava-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* 固定設計尺寸（與 JS 寫入的 --lava-d 分離，不改 JS） */
+.lava-blob--joy {
+  width: 500px !important;
+  height: 500px !important;
+  left: 15%;
+  top: -15%;
+  right: auto;
+  bottom: auto;
+  background: radial-gradient(circle, #E8603C 0%, #F0813A 50%, transparent 75%);
+  filter: blur(60px);
+  opacity: 0.82;
+  transform: translate(-50%, -50%);
+  animation: lavaPathJoy 27s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.lava-blob--sadness {
+  width: 380px !important;
+  height: 380px !important;
+  right: 5%;
+  left: auto;
+  top: 35%;
+  bottom: auto;
+  background: radial-gradient(circle, #4A90C4 0%, #5BA8D8 50%, transparent 75%);
+  filter: blur(55px);
+  opacity: 0.78;
+  transform: translate(50%, -50%);
+  animation: lavaPathSad 31s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+.lava-blob--anger {
+  width: 300px !important;
+  height: 300px !important;
+  left: 5%;
+  right: auto;
+  bottom: 10%;
+  top: auto;
+  background: radial-gradient(circle, #C0392B 0%, #E74C3C 50%, transparent 75%);
+  filter: blur(50px);
+  opacity: 0.72;
+  transform: translate(-50%, 50%);
+  animation: lavaPathAnger 23s ease-in-out infinite;
+  animation-delay: -11s;
+}
+
+.lava-blob--fear {
+  width: 340px !important;
+  height: 340px !important;
+  right: 20%;
+  left: auto;
+  bottom: 25%;
+  top: auto;
+  background: radial-gradient(circle, #7B68C8 0%, #9B89D4 50%, transparent 75%);
+  filter: blur(58px);
+  opacity: 0.7;
+  transform: translate(50%, 50%);
+  animation: lavaPathFear 34s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+.lava-blob--disgust {
+  width: 280px !important;
+  height: 280px !important;
+  left: 30%;
+  right: auto;
+  top: 55%;
+  bottom: auto;
+  background: radial-gradient(circle, #8DB04A 0%, #A8C85A 50%, transparent 75%);
+  filter: blur(52px);
+  opacity: 0.68;
+  transform: translate(-50%, -50%);
+  animation: lavaPathDisgust 29s ease-in-out infinite;
+  animation-delay: -15s;
+}
+
+.lava-blob--surprise {
+  width: 420px !important;
+  height: 420px !important;
+  left: 35%;
+  right: auto;
+  top: 20%;
+  bottom: auto;
+  background: radial-gradient(circle, #E8B84B 0%, #F0CC6A 50%, transparent 75%);
+  filter: blur(65px);
+  opacity: 0.8;
+  transform: translate(-50%, -50%);
+  animation: lavaPathSurprise 25s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+@keyframes lavaPathJoy {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+  18%      { transform: translate(-50%, -50%) translate(12vw, 6vh); }
+  38%      { transform: translate(-50%, -50%) translate(-8vw, 14vh); }
+  58%      { transform: translate(-50%, -50%) translate(10vw, -10vh); }
+  78%      { transform: translate(-50%, -50%) translate(-12vw, -5vh); }
+}
+
+@keyframes lavaPathSad {
+  0%, 100% { transform: translate(50%, -50%) translate(0, 0); }
+  22%      { transform: translate(50%, -50%) translate(-10vw, 10vh); }
+  44%      { transform: translate(50%, -50%) translate(14vw, 4vh); }
+  66%      { transform: translate(50%, -50%) translate(-6vw, -12vh); }
+  82%      { transform: translate(50%, -50%) translate(8vw, -3vh); }
+}
+
+@keyframes lavaPathAnger {
+  0%, 100% { transform: translate(-50%, 50%) translate(0, 0); }
+  25%      { transform: translate(-50%, 50%) translate(12vw, -12vh); }
+  50%      { transform: translate(-50%, 50%) translate(-14vw, 3vh); }
+  72%      { transform: translate(-50%, 50%) translate(6vw, 12vh); }
+}
+
+@keyframes lavaPathFear {
+  0%, 100% { transform: translate(50%, 50%) translate(0, 0); }
+  20%      { transform: translate(50%, 50%) translate(8vw, 12vh); }
+  40%      { transform: translate(50%, 50%) translate(-16vw, 5vh); }
+  60%      { transform: translate(50%, 50%) translate(10vw, -12vh); }
+  80%      { transform: translate(50%, 50%) translate(-5vw, -8vh); }
+}
+
+@keyframes lavaPathDisgust {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+  30%      { transform: translate(-50%, -50%) translate(-14vw, -8vh); }
+  55%      { transform: translate(-50%, -50%) translate(10vw, 10vh); }
+  75%      { transform: translate(-50%, -50%) translate(5vw, -16vh); }
+}
+
+@keyframes lavaPathSurprise {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+  17%      { transform: translate(-50%, -50%) translate(-10vw, -12vh); }
+  35%      { transform: translate(-50%, -50%) translate(16vw, 3vh); }
+  52%      { transform: translate(-50%, -50%) translate(-12vw, 14vh); }
+  70%      { transform: translate(-50%, -50%) translate(6vw, -8vh); }
+  88%      { transform: translate(-50%, -50%) translate(-3vw, 9vh); }
+}
