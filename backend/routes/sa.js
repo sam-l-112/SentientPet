@@ -12,4 +12,10 @@ router.post('/sa', authMiddleware, saController.handleSentimentAnalysis);
 // 取得情緒追蹤歷史 (Emotional Tracking)
 router.get('/et/:cs_id', authMiddleware, saController.getEmotionalTracking);
 
+// // Typing Behavin Analysis 打字紀錄
+// router.post('/st', );
+
+// // 取得打字歷史紀錄 (Emotion_Typing)
+// router.get('/st/:cs_id');
+
 module.exports = router;

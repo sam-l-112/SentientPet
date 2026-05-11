@@ -122,9 +122,9 @@ exports.chat = async (req, res) => {
              LIMIT 20`,
             [cs_id]
         )
-
+// DESC
         // 3. 組合 system prompt
-        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物... Communication at zh-Tw。\n'
+        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物...。\n'
 
         // 4. 組合 messages
         const messages = history.map(m => ({

@@ -220,7 +220,7 @@ pm2 reload server
 
 ---
 # 參考資料
-[API 資料整合](https://hackmd.io/@sam21/rkmWdQWjbg)
+[API 資料整合](https://hackmd.io/@sam21/B1C47Zqnbg)
 
 [database 資料](https://hackmd.io/@sam21/ry4LDm-sZg)
 

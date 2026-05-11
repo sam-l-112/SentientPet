@@ -1,5 +1,5 @@
 // services/aiService.js
-// 負責跟 HuggingFace API 溝通，把 API 細節封裝在這裡
+// 負責跟 NVIDIA 與 Hugging Face API 溝通，把 AI 模型呼叫細節封裝在這裡
 const axios = require('axios')
 
 /**
@@ -15,25 +15,72 @@ exports.callAI = async (messages, systemPrompt = null) => {
         {
             role: 'system',
             content: systemPrompt ||
-                '你是一個友善、樂於助人的虛擬寵物，請以口語化、自然且簡潔的繁體中文回答，不需要顯示思考過程。'
+                '你是心理醫生你的話不多，引導式問答 Communication at zh-Tw。'
         },
         ...messages
     ]
 
-    // 定義模型列表：先 Gemini，再 Qwen
+    // 定義模型候選清單：優先使用 NVIDIA 服務，再回落到 Hugging Face
     const models = [
-        { name: process.env.HF_MODEL_NAME_GEMINI, label: 'Gemini' },
-        { name: process.env.HF_MODEL_NAME_QWEN, label: 'Qwen' }
-    ]
+        {
+            name: process.env.NV_GEMINI,
+            label: 'NVIDIA Gemini',
+            source: 'nvidia',
+            url: process.env.NV_GSURL,
+            apiKey: process.env.NV_GEMINI_KEY
+        },
+        {
+            name: process.env.NV_MINIMAX,
+            label: 'NVIDIA MiniMax',
+            source: 'nvidia',
+            url: process.env.NV_MSURL,
+            apiKey: process.env.NV_MINIMAX_KEY
+        },
+        {
+            name: process.env.NV_DEEPSEEK,
+            label: 'NVIDIA DeepSeek',
+            source: 'nvidia',
+            url: process.env.NVIDIA_DSURL,
+            apiKey: process.env.NV_DEEPSEEK_KEY
+        },
+        {
+            name: process.env.HF_MODEL_NAME_GEMINI,
+            label: 'HuggingFace Gemini',
+            source: 'huggingface',
+            url: process.env.HF_MODEL_URL,
+            apiKey: process.env.HF_TOKEN
+        },
+        {
+            name: process.env.HF_MODEL_NAME_QWEN,
+            label: 'HuggingFace Qwen',
+            source: 'huggingface',
+            url: process.env.HF_MODEL_URL,
+            apiKey: process.env.HF_TOKEN
+        }
+    ].filter(model => model.name)
+
+    const buildUrl = (model) => {
+        if (!model.url) return null
+        const trimmed = model.url.replace(/\/+$/, '')
+        return trimmed.endsWith('/chat/completions')
+            ? trimmed
+            : `${trimmed}/chat/completions`
+    }
 
     let lastError = null
 
     for (const model of models) {
+        const apiUrl = buildUrl(model)
+        if (!apiUrl) {
+            console.log(`跳過 ${model.label}：缺少 API URL`)
+            continue
+        }
+
         try {
             console.log(`嘗試使用 ${model.label} 模型...`)
 
             const response = await axios.post(
-                process.env.HF_MODEL_URL,
+                apiUrl,
                 {
                     model:       model.name,
                     messages:    fullMessages,
@@ -42,7 +89,7 @@ exports.callAI = async (messages, systemPrompt = null) => {
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer ${process.env.HF_TOKEN}`,
+                        'Authorization': `Bearer ${model.apiKey}`,
                         'Content-Type':  'application/json'
                     },
                     timeout: 30000 // 30 秒超時

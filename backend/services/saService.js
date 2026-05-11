@@ -34,7 +34,7 @@ exports.analyzeTextFromPython = async (text, typing = null, history_last10 = [])
         });
 
         if (!response.ok) {
-            const text = await response.text();
+            const errorDetail = await response.errorDetail();
             console.error('Python 服務回傳錯誤:', response.status, text);
             throw new Error('Python Sentiment Service Unavailable');
         }
