@@ -15,7 +15,7 @@ exports.callAI = async (messages, systemPrompt = null) => {
         {
             role: 'system',
             content: systemPrompt ||
-                '你是心理醫生你的話不多，引導式問答 Communication at zh-Tw。'
+                '你是心理醫生你的簡短有力的，引導式問答，約兩三句話完成 Communication at zh-Tw。'
         },
         ...messages
     ]
