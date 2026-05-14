@@ -228,6 +228,8 @@ pm2 reload server
 
 # Document
 
+[Docs](docs/README.md)
+
 [npm Security Audit](docs/npm_Security_Audit.md)
 
 [Python 環境管理與套件紀錄指南](docs/python%20環境管理與套件紀錄指南.md)
@@ -239,6 +241,8 @@ pm2 reload server
 [Ubuntu 背景執行 Python API (systemd) 與除錯指南](docs/Ubuntu%20背景執行%20Python%20API%20(systemd).md)
 
 [Linux UFW 防火牆維運與流量觀察筆記](docs/Linux%20UFW%20防火牆維運與流量觀察筆記.md)
+
+[NGINX 設置自簽 SSL 憑證 (OpenSSL) 實作筆記](docs/NGINX%20設置自簽%20SSL%20憑證%20(OpenSSL)%20實作筆記.md)
 
 ---
 
