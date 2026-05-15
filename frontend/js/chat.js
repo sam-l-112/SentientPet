@@ -1,5 +1,5 @@
 // ── 全域變數：API 位址、DOM 元素、對話狀態 ──
-const API_BASE = "http://210.70.254.110:2237";
+const API_BASE = "https://210.70.254.110:2237";
 const messagesEl = document.getElementById("messages");
 const welcomeEl = document.getElementById("welcome");
 const inputEl = document.getElementById("userInput");
