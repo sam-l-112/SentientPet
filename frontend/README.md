@@ -110,7 +110,7 @@ index.html           # 聊天介面主頁（入口）
 | `POST` | `/api/auth/login` | 登入，body 帶 `username` 與 `password`，成功回傳 `{ message: "login success" }` |
 | `POST` | `/api/ai/ask` | 傳送訊息給 AI，body 帶 `message`、`history` 等欄位，回傳 AI 回覆 |
 
-後端 API 位址目前設定為 `https://210.70.254.110:2237`，如有變更請同步修改 `login.js` 與 `chat.js` 中的 URL。
+後端 API 位址目前設定為 `http://210.70.254.110:2237`，如有變更請同步修改 `login.js` 與 `chat.js` 中的 URL。
 
 ---
 
