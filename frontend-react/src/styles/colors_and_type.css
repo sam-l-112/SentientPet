@@ -1,0 +1,200 @@
+/* ════════════════════════════════════════════════════════════
+   SentientPet — Colors & Type
+   ────────────────────────────────────────────────────────────
+   Warm, healing, kawaii. Coral primary + cool blue secondary +
+   soft purple text, on a warm cream canvas. Six emotion blobs
+   drive accent + analytical color.
+   ════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap");
+
+:root {
+  /* ── Surface (warm cream) ───────────────────────── */
+  --sp-canvas:        #F5F0E8;  /* main page background */
+  --sp-canvas-warm:   #F8F2E6;  /* slightly warmer alt */
+  --sp-cream:         #FAF7F2;  /* card / inner cream */
+  --sp-surface:       rgba(245, 240, 232, 0.55);  /* frosted panel */
+  --sp-surface-solid: #FFFFFF;
+  --sp-surface-glass: rgba(255, 255, 255, 0.65);  /* bubble glass */
+  --sp-surface-input: rgba(255, 255, 255, 0.90);
+
+  /* ── Text & ink ─────────────────────────────────── */
+  --sp-ink:           #4A3F5C;  /* primary text, slate-violet */
+  --sp-ink-soft:      #7A6D8A;  /* secondary, headings on chrome */
+  --sp-muted:         #A89BBF;  /* labels, hints, captions */
+  --sp-faint:         #C8BCD8;  /* placeholder, disabled labels */
+  --sp-ink-on-warm:   #FFFFFF;  /* text on coral gradient */
+
+  /* ── Coral (primary, "warm") ────────────────────── */
+  --sp-coral-50:      #FBF2EC;
+  --sp-coral-100:     #F4DECC;
+  --sp-coral-200:     #E8BD9D;
+  --sp-coral-300:     #D89E78;
+  --sp-coral-400:     #C98463;  /* primary — dusty coral */
+  --sp-coral-500:     #B66A48;  /* primary deep — mellow brick */
+  --sp-coral-600:     #93502F;
+  --sp-coral-700:     #6F3C22;
+  --sp-coral:         var(--sp-coral-400);
+  --sp-coral-deep:    var(--sp-coral-500);
+  --sp-coral-grad:    linear-gradient(135deg, #C98463 0%, #B66A48 100%);
+  --sp-coral-glow:    0 4px 20px rgba(182, 106, 72, 0.30);
+  --sp-coral-glow-lg: 0 8px 32px rgba(182, 106, 72, 0.36);
+
+  /* ── Sky (secondary, "cool") ────────────────────── */
+  --sp-sky-50:        #E8F1F8;
+  --sp-sky-100:       #C7DDEE;
+  --sp-sky-200:       #9AC1DE;
+  --sp-sky-300:       #5BA8D8;
+  --sp-sky-400:       #4A90C4;
+  --sp-sky-500:       #2E6FA8;  /* accent / link */
+  --sp-sky-600:       #1E5A8C;
+  --sp-sky:           var(--sp-sky-500);
+  --sp-sky-grad:      linear-gradient(135deg, #5BA8D8 0%, #2E6FA8 100%);
+
+  /* ── Lilac (tertiary, atmosphere) ───────────────── */
+  --sp-lilac-50:      #F5F0FA;
+  --sp-lilac-100:     #E8DEF2;
+  --sp-lilac-200:     #D2B9EB;
+  --sp-lilac-300:     #B89CD4;
+  --sp-lilac-400:     #9B89D4;
+  --sp-lilac-500:     #7B68C8;
+  --sp-lilac-600:     #5E4DA8;
+  --sp-lilac:         var(--sp-lilac-500);
+
+  /* ── Emotion palette (six lava blobs) ───────────── */
+  --sp-em-joy:        #E24B4A;  /* 快樂 — saturated red-coral  */
+  --sp-em-joy-soft:   #F0813A;  /* joy lava outer */
+  --sp-em-sad:        #378ADD;  /* 悲傷 — clear sky blue */
+  --sp-em-sad-soft:   #5BA8D8;
+  --sp-em-anger:      #C0392B;  /* 憤怒 — deep red */
+  --sp-em-anger-soft: #E74C3C;
+  --sp-em-fear:       #7F77DD;  /* 恐懼 — periwinkle */
+  --sp-em-fear-soft:  #9B89D4;
+  --sp-em-disgust:    #1D9E75;  /* 厭惡 — sage green */
+  --sp-em-disgust-soft:#A8C85A;
+  --sp-em-surprise:   #BA7517;  /* 驚訝 — amber */
+  --sp-em-surprise-soft:#E8B84B;
+
+  /* ── Semantic state ─────────────────────────────── */
+  --sp-online:        #7ED6A0;
+  --sp-success:       #5BB389;
+  --sp-danger:        #E07090;
+  --sp-warn:          #E8B84B;
+  --sp-info:          var(--sp-sky-500);
+
+  /* ── Borders (lilac-tinted hairlines) ───────────── */
+  --sp-border:        rgba(200, 180, 220, 0.20);
+  --sp-border-card:   rgba(220, 190, 240, 0.25);
+  --sp-border-input:  rgba(210, 185, 235, 0.40);
+  --sp-border-focus:  rgba(74, 144, 196, 0.55);
+  --sp-divider:       rgba(200, 180, 220, 0.30);
+
+  /* ── Shadows (purple-tinted, soft) ──────────────── */
+  --sp-shadow-xs:     0 1px 8px rgba(180, 140, 200, 0.07);
+  --sp-shadow-sm:     0 2px 10px rgba(45, 100, 130, 0.12);
+  --sp-shadow-md:     0 4px 32px rgba(180, 140, 200, 0.13);
+  --sp-shadow-lg:     0 8px 48px rgba(180, 140, 220, 0.15);
+  --sp-shadow-glow:   0 0 60px rgba(180, 140, 220, 0.12);
+  --sp-shadow-focus:  0 0 0 3px rgba(74, 144, 196, 0.12);
+
+  /* ── Radii ──────────────────────────────────────── */
+  --sp-radius-xs:     8px;   /* tag, dot, pill bg */
+  --sp-radius-sm:     12px;  /* small button, chip */
+  --sp-radius-md:     16px;  /* primary button, input */
+  --sp-radius-lg:     20px;  /* bubble, small card */
+  --sp-radius-xl:     22px;  /* input bar */
+  --sp-radius-2xl:    28px;  /* main card, panel */
+  --sp-radius-pill:   999px;
+  --sp-radius-tail:   5px;   /* bubble tail corner */
+
+  /* ── Spacing scale ──────────────────────────────── */
+  --sp-space-1:       4px;
+  --sp-space-2:       6px;
+  --sp-space-3:       8px;
+  --sp-space-4:       10px;
+  --sp-space-5:       12px;
+  --sp-space-6:       14px;
+  --sp-space-7:       16px;
+  --sp-space-8:       20px;
+  --sp-space-9:       24px;
+  --sp-space-10:      28px;
+  --sp-space-12:      32px;
+  --sp-space-16:      48px;
+
+  /* ── Blur (frosted glass) ───────────────────────── */
+  --sp-blur-sm:       blur(16px);
+  --sp-blur-md:       blur(24px);
+  --sp-blur-lg:       blur(28px);
+  --sp-blur-xl:       blur(40px);
+
+  /* ── Motion ─────────────────────────────────────── */
+  --sp-ease-out:      cubic-bezier(.22, 1, .36, 1);
+  --sp-ease-bounce:   cubic-bezier(.34, 1.56, .64, 1);
+  --sp-dur-fast:      150ms;
+  --sp-dur-med:       250ms;
+  --sp-dur-slow:      500ms;
+
+  /* ── Typography families ────────────────────────── */
+  /* Unified English type pair: Playfair Display (display) + Nunito (everything else). */
+  --sp-font-sans:     "Nunito", -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif;
+  --sp-font-display:  "Playfair Display", "Noto Serif TC", Georgia, serif;
+  --sp-font-mono:     ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+  /* ── Type tokens (size / weight / line / track) ─── */
+  --sp-text-xs:       0.70rem;  /* 11.2px — labels, dots */
+  --sp-text-sm:       0.82rem;  /* 13px   — captions, errors */
+  --sp-text-base:     0.93rem;  /* 14.9px — input text */
+  --sp-text-md:       1.00rem;  /* 16px   — body */
+  --sp-text-lg:       1.25rem;  /* 20px   — section title */
+  --sp-text-xl:       1.50rem;  /* 24px   — h2 / card title */
+  --sp-text-2xl:      2.00rem;  /* 32px   — hero number */
+  --sp-text-3xl:      2.625rem; /* 42px   — score display */
+  --sp-text-4xl:      3.25rem;  /* 52px   — detail score */
+}
+
+/* ════════════════════════════════════════════════════════════
+   Semantic role styles — drop these on raw elements.
+   ════════════════════════════════════════════════════════════ */
+
+html, body {
+  font-family: var(--sp-font-sans);
+  font-size: 15px;
+  color: var(--sp-ink);
+  background: var(--sp-canvas);
+}
+
+/* — Display (Playfair, soft, often italic) — */
+.sp-display {
+  font-family: var(--sp-font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
+  line-height: 1.15;
+}
+.sp-display-italic {
+  font-family: var(--sp-font-display);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--sp-muted);
+}
+
+/* — Headings — */
+.sp-h1 { font-family: var(--sp-font-display); font-weight: 500; font-size: var(--sp-text-xl);  line-height: 1.2;  color: var(--sp-ink); letter-spacing: -0.01em; }
+.sp-h2 { font-family: var(--sp-font-display); font-weight: 500; font-size: var(--sp-text-lg);  line-height: 1.25; color: var(--sp-ink); letter-spacing: -0.005em; }
+.sp-h3 { font-family: var(--sp-font-sans);    font-weight: 700; font-size: var(--sp-text-md);  line-height: 1.3;  color: var(--sp-ink); }
+
+/* — Body — */
+.sp-body  { font-family: var(--sp-font-sans); font-weight: 400; font-size: var(--sp-text-md); line-height: 1.65; color: var(--sp-ink); letter-spacing: 0.01em; }
+.sp-body-sm { font-family: var(--sp-font-sans); font-weight: 400; font-size: var(--sp-text-base); line-height: 1.6; color: var(--sp-ink); }
+
+/* — UI labels — */
+.sp-label    { font-family: var(--sp-font-sans); font-weight: 600; font-size: var(--sp-text-sm);  color: var(--sp-muted); letter-spacing: 0.02em; }
+.sp-eyebrow  { font-family: var(--sp-font-sans); font-weight: 600; font-size: var(--sp-text-xs);  color: var(--sp-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.sp-caption  { font-family: var(--sp-font-sans); font-weight: 400; font-size: var(--sp-text-xs);  color: var(--sp-faint); }
+
+/* — Numeric display (Playfair when big, Nunito when small) — */
+.sp-stat-xl  { font-family: var(--sp-font-sans); font-weight: 600; font-size: var(--sp-text-4xl); color: var(--sp-ink); line-height: 1; }
+.sp-stat-lg  { font-family: var(--sp-font-sans); font-weight: 600; font-size: var(--sp-text-3xl); color: var(--sp-ink); line-height: 1; }
+
+/* — Mono (for code, ids, technical) — */
+.sp-mono { font-family: var(--sp-font-mono); font-size: var(--sp-text-base); color: var(--sp-ink-soft); }
