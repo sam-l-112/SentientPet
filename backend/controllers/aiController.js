@@ -116,15 +116,19 @@ exports.chat = async (req, res) => {
         // 2. 取得歷史訊息
         // mariadb 不需要解構
         const history = await pool.query(
-            `SELECT role, content FROM messages
-             WHERE cs_id = ?
-             ORDER BY message_at ASC
-             LIMIT 20`,
+            `SELECT role, content FROM (
+                SELECT role, content, message_at
+                FROM messages
+                WHERE cs_id = ?
+                ORDER BY message_at DESC
+                LIMIT 20 
+             ) AS sub_query
+             ORDER BY message_at ASC`,
             [cs_id]
         )
-
+// DESC
         // 3. 組合 system prompt
-        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物... Communication at zh-Tw。\n'
+        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物...。\n'
 
         // 4. 組合 messages
         const messages = history.map(m => ({
@@ -141,6 +145,12 @@ exports.chat = async (req, res) => {
              VALUES (?, 'assistant', ?)`,
             [cs_id , aiReply]
         );
+
+        const aiupdatetime = await pool.query(
+            `UPDATE chat_sessions SET updated_at = NOW() 
+             WHERE cs_id = ?`,
+            [cs_id]
+        )
 
         const ai_mes_id = Number(aiInsertResult.insertId);
 

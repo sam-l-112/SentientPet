@@ -220,7 +220,7 @@ pm2 reload server
 
 ---
 # 參考資料
-[API 資料整合](https://hackmd.io/@sam21/rkmWdQWjbg)
+[API 資料整合](https://hackmd.io/@sam21/B1C47Zqnbg)
 
 [database 資料](https://hackmd.io/@sam21/ry4LDm-sZg)
 
@@ -228,17 +228,7 @@ pm2 reload server
 
 # Document
 
-[npm Security Audit](docs/npm_Security_Audit.md)
-
-[Python 環境管理與套件紀錄指南](docs/python%20環境管理與套件紀錄指南.md)
-
-[PM2 進程管理與維護指南](docs/PM2%20進程管理與維護指南.md)
-
-[Node.js API 安全驗證與環境部署指南 (JWT & Docker)](docs/Node.js%20API%20安全驗證與環境部署指南%20(JWT%20&%20Docker).md)
-
-[Ubuntu 背景執行 Python API (systemd) 與除錯指南](docs/Ubuntu%20背景執行%20Python%20API%20(systemd).md)
-
-[Linux UFW 防火牆維運與流量觀察筆記](docs/Linux%20UFW%20防火牆維運與流量觀察筆記.md)
+[Docs](docs/README.md)
 
 ---
 

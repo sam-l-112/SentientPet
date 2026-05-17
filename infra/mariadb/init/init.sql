@@ -86,6 +86,27 @@ CREATE INDEX idx_emotion_cs_id ON Emotion_Tracker(cs_id);
 -- CREATE INDEX idx_emotion_mes_id ON Emotion_Tracker(mes_id);
 -- CREATE INDEX idx_emotion_cs_id ON Emotion_Tracker(cs_id);
 
+-- 5. Typing Behavin Analysis 打字紀錄
+CREATE TABLE Emotion_Typing (
+    EmotionTping_ID INT NULL AUTO_INCREMENT PRIMARY KEY,
+    cs_id       INT NOT NULL, -- 加入冗餘欄位，優化統計效能
+    mes_id      INT NOT NULL,
+
+    wpm                 FLOAT   COMMENT '每分鐘字數',
+    backspaces          INT DEFAULT 0   COMMENT '刪除鍵次數',
+    pauses              INT DEFAULT 0   COMMENT '長停頓次數',
+    hesitation_index    FLOAT   COMMENT '猶豫次數',
+
+    Typing_at   TIMESTAMP   NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_emotion_message
+        FOREIGN KEY (mes_id) REFERENCES messages (mes_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_emotion_session   
+        FOREIGN KEY (cs_id) REFERENCES  chat_sessions (cs_id) 
+        ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE INDEX idx_typing_cs_id ON Emotion_Typing(cs_id);
 
 -- CREATE TABLE IF NOT EXISTS `users` (
 --   `id` INT AUTO_INCREMENT PRIMARY KEY,
