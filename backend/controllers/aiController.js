@@ -127,9 +127,6 @@ exports.chat = async (req, res) => {
             [cs_id]
         )
 // DESC
-        // 3. 組合 system prompt
-        let systemPrompt = '你是一個友善、樂於助人的虛擬寵物...。\n'
-
         // 4. 組合 messages
         const messages = history.map(m => ({
             role:    m.role,
@@ -137,7 +134,7 @@ exports.chat = async (req, res) => {
         }))
 
         // 5. 呼叫 AI
-        const aiReply = await aiService.callAI(messages, systemPrompt)
+        const aiReply = await aiService.callAI(messages)
 
         // 6. 存 AI
         const aiInsertResult = await pool.query(
