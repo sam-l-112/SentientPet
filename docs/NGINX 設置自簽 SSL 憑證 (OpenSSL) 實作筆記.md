@@ -74,15 +74,15 @@ sudo nginx -t
 
 
 
-```
+
    *預期輸出：nginx: configuration file ... syntax is ok / test is successful*
 
 2. **重新載入 NGINX**：
-   ```bash
-   sudo systemctl reload nginx
-   ```
-
+```bash
+  sudo systemctl reload nginx
 ```
+
+
 
 ---
 
