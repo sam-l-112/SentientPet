@@ -34,6 +34,12 @@ export async function register({ username, email, password }) {
   return data; // { success, message, user_id }
 }
 
+// 取得所有 sessions（後端依 updated_at 倒序，[0] 為最新）
+export async function getSessions() {
+  const { data } = await api.get("/api/ai/sessions");
+  return data; // { success, sessions: [{ user_id, cs_id }] }
+}
+
 // ── Chat session ──────────────────────────────────────────
 export async function createSession(title = "新對話") {
   const { data } = await api.post("/api/ai/sessions", { title });
@@ -54,6 +60,11 @@ export async function sendMessage(csId, content) {
 export async function analyzeSentiment({ cs_id, mes_id, content }) {
   const { data } = await api.post("/api/sa", { cs_id, mes_id, content });
   return data; // { success, data: { joy, sadness, anger, fear, disgust, surprise, valence, stage } }
+}
+
+export async function getEmotionHistory(csId) {
+  const { data } = await api.get(`/api/sa/et/${csId}`);
+  return data; // { success, history: [{ joy, sadness, anger, fear, disgust, surprise, valence, stage }] }
 }
 
 export { API_BASE };

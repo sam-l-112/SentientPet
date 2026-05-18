@@ -28,11 +28,6 @@ function readUser() {
   }
 }
 
-function readCsId() {
-  const v = localStorage.getItem("current_cs_id");
-  return v && v !== "undefined" && v !== "null" ? v : null;
-}
-
 export default function App() {
   const [route, setRoute] = React.useState("loading"); // "loading" | "auth" | "chat"
   const [user, setUser] = React.useState(null);
@@ -61,32 +56,38 @@ export default function App() {
 
   async function bootChat() {
     setRoute("chat");
-    let cs_id = readCsId();
-    if (cs_id) {
-      try {
-        const data = await API.getSessionMessages(cs_id);
-        if (data.success) {
-          setCsId(cs_id);
-          setMessages(
-            data.messages.map((m) => ({
-              role: m.role === "user" ? "user" : "bot",
-              content: m.content,
-            }))
-          );
-          return;
-        }
-      } catch {
-        // session 可能已被後端清掉或 token 過期 → 建新的
-      }
-    }
     try {
-      const data = await API.createSession("新對話");
-      if (data.success) {
-        setCsId(data.cs_id);
-        localStorage.setItem("current_cs_id", String(data.cs_id));
+      // 查該使用者所有 sessions，取最新一筆
+      const sessionData = await API.getSessions();
+      if (sessionData.success && sessionData.sessions?.length > 0) {
+        const latest = sessionData.sessions[0]; // 後端已倒序，[0] 是最新
+        setCsId(latest.cs_id);
+        localStorage.setItem("current_cs_id", String(latest.cs_id));
+        const msgData = await API.getSessionMessages(latest.cs_id);
+        if (msgData.success) {
+          setMessages(msgData.messages.map((m) => ({
+            role: m.role === "user" ? "user" : "bot",
+            content: m.content,
+          })));
+          const emotionData = await API.getEmotionHistory(latest.cs_id);
+          if (emotionData.success && emotionData.history?.length > 0) {
+            setHistory(emotionData.history.map((r) => ({
+              score: Math.round(r.valence ?? 50),
+              stage: r.stage ?? "neutral",
+              raw: r,
+            })));
+          }
+        }
+      } else {
+        // 完全沒有 session，才建新的
+        const newData = await API.createSession("新對話");
+        if (newData.success) {
+          setCsId(newData.cs_id);
+          localStorage.setItem("current_cs_id", String(newData.cs_id));
+        }
       }
     } catch (err) {
-      console.error("createSession 失敗:", err);
+      console.error("bootChat 失敗:", err);
     }
   }
 
@@ -100,9 +101,8 @@ export default function App() {
   function onLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    // current_cs_id 故意保留，讓下次登入能延續
+    localStorage.removeItem("current_cs_id");
     setUser(null);
-    setCsId(null);
     setMessages([]);
     setHistory([]);
     setLatest(null);
