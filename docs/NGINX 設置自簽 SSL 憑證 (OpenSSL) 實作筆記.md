@@ -94,7 +94,6 @@ sudo nginx -t
 
 ```bash
 curl -k -I https://localhost
-
 ```
 
 ### 2. 瀏覽器測試
@@ -120,12 +119,6 @@ curl -k -I https://localhost
 ```bash
 sudo chmod 644 /etc/nginx/ssl/nginx-selfsigned.crt
 sudo chmod 600 /etc/nginx/ssl/nginx-selfsigned.key
-
-
-```
-
-
-
 ```
 
 ---
