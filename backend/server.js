@@ -33,6 +33,7 @@ app.use(cors({
         process.env.FRONTEND_URL_LH,
         process.env.FRONTEND_URL_NW,
         process.env.FRONTEND_URL_I,
+	    process.env.FRONTEND_URL_VITE,
     ].filter(Boolean),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
