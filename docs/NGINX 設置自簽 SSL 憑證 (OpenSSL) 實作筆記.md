@@ -79,7 +79,7 @@ sudo nginx -t
 
 2. **重新載入 NGINX**：
 ```bash
-  sudo systemctl reload nginx
+sudo systemctl reload nginx
 ```
 
 
