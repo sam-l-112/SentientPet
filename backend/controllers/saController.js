@@ -99,7 +99,7 @@ exports.handleSentimentAnalysis = async (req, res) => {
 exports.getEmotionalTracking = async (req, res) => {
     const { cs_id } = req.params;
     try {
-        const [rows] = await pool.execute(
+        const rows = await pool.execute(
             'SELECT * FROM Emotion_Tracker WHERE cs_id = ? ORDER BY analyzed_at ASC',
             [cs_id]
         );
