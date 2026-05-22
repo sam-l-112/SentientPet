@@ -56,7 +56,6 @@ SYSTEM_PROMPT = """
   },
   "dominant_emotion": "happiness|sadness|anger|fear|disgust|surprise",
   "vad": {
-    "valence": -100..100（整數）,
     "arousal": 0..100（整數）,
     "dominance": 0..100（整數）
   },

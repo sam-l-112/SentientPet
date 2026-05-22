@@ -1,6 +1,6 @@
 /*
  * 負責與 Python Port 5000 溝通的服務
-*/
+ */
 
 const FETCH_TIMEOUT_MS = 100000;
 

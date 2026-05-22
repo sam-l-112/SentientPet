@@ -1,5 +1,6 @@
 // controllers/saController.js
 const axios = require('axios');
+// const express = require('express')
 const pool = require('../config/database');
 const saService = require('../services/saService');
 
@@ -13,25 +14,38 @@ exports.handleSentimentAnalysis = async (req, res) => {
     try {
         const response = await saService.analyzeTextFromPython(content, typing, history_last10 || []);
 
+        // 🔥 【核心除錯】放最前面，保證 100% 執行！看清楚 Python 回傳的真實 JSON 結構
+        console.log('====== Python 實際回傳的資料內容 ======', JSON.stringify(response, null, 2));
+
         if (!response.success || !response.data) {
             throw new Error('Invalid response from Python service');
         }
 
         const emotionData = response.data;
 
-        if (
-            !emotionData.ekman ||
-            typeof emotionData.ekman.happiness !== 'number' ||
-            typeof emotionData.ekman.sadness !== 'number' ||
-            typeof emotionData.ekman.anger !== 'number' ||
-            typeof emotionData.ekman.fear !== 'number' ||
-            typeof emotionData.ekman.disgust !== 'number' ||
-            typeof emotionData.ekman.surprise !== 'number' ||
-            typeof emotionData.vad?.valence !== 'number' ||
-            typeof emotionData.context_shift !== 'string'
-        ) {
-            throw new Error('Invalid emotion data from Python service');
+        // 驗證必要的欄位結構
+        if (!emotionData.ekman) {
+            console.error('Missing ekman field in response:', emotionData);
+            throw new Error('Invalid emotion data: missing ekman field');
         }
+
+        // 檢查 ekman 中的所有情緒值
+        const requiredEmotions = ['happiness', 'sadness', 'anger', 'fear', 'disgust', 'surprise'];
+        for (const emotion of requiredEmotions) {
+            if (typeof emotionData.ekman[emotion] !== 'number') {
+                console.error(`Missing or invalid ${emotion}:`, emotionData.ekman[emotion]);
+                throw new Error(`Invalid emotion data: missing or invalid ${emotion}`);
+            }
+        }
+
+        // 檢查 context_shift 欄位
+        if (typeof emotionData.context_shift !== 'string') {
+            console.error('Invalid context_shift:', emotionData.context_shift);
+            throw new Error('Invalid emotion data: missing context_shift');
+        }
+
+        // 安全取得 ekman 欄位，避免 undefined 錯誤
+        const ekmanObj = emotionData.ekman || {};
 
         // 映射 Python 的回應到 Node.js 期望的格式
         const contextShift = emotionData.context_shift;
@@ -52,19 +66,20 @@ exports.handleSentimentAnalysis = async (req, res) => {
         }
 
         const mappedData = {
-            joy: emotionData.ekman.happiness,
-            sadness: emotionData.ekman.sadness,
-            anger: emotionData.ekman.anger,
-            fear: emotionData.ekman.fear,
-            disgust: emotionData.ekman.disgust,
-            surprise: emotionData.ekman.surprise,
-            valence: emotionData.vad.valence,
-            stage: stage
+            joy: Math.round(ekmanObj.happiness),
+            sadness: Math.round(ekmanObj.sadness),
+            anger: Math.round(ekmanObj.anger),
+            fear: Math.round(ekmanObj.fear),
+            disgust: Math.round(ekmanObj.disgust),
+            surprise: Math.round(ekmanObj.surprise),
+            // valence: emotionData.vad.valence,
+            stage: stage,
+            summary: emotionData.summary || ''
         };
 
         const query = `
             INSERT INTO Emotion_Tracker 
-            (cs_id, mes_id, joy, sadness, anger, fear, disgust, surprise, valence, stage) 
+            (cs_id, mes_id, joy, sadness, anger, fear, disgust, surprise, stage, summary) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
@@ -77,8 +92,8 @@ exports.handleSentimentAnalysis = async (req, res) => {
             mappedData.fear,
             mappedData.disgust,
             mappedData.surprise,
-            mappedData.valence,
             mappedData.stage,
+            mappedData.summary
         ];
 
         await pool.execute(query, params);
@@ -99,7 +114,8 @@ exports.handleSentimentAnalysis = async (req, res) => {
 exports.getEmotionalTracking = async (req, res) => {
     const { cs_id } = req.params;
     try {
-        const rows = await pool.query(
+        // const [rows] = await pool.execute()
+        const [rows] = await pool.execute(
             'SELECT * FROM Emotion_Tracker WHERE cs_id = ? ORDER BY analyzed_at ASC',
             [cs_id]
         );
