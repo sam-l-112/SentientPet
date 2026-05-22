@@ -26,7 +26,7 @@ function ChatHeader({ username, onLogout }) {
   );
 }
 
-function Bubble({ role, children }) {
+function Bubble({ role, children, elapsed }) {
   // 把換行轉成段落，讓長文不會黏成一大塊
   const lines = String(children).split("\n").filter(l => l.trim() !== "");
   return (
@@ -36,6 +36,12 @@ function Bubble({ role, children }) {
         {lines.map((line, i) => (
           <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0" }}>{line}</p>
         ))}
+        {role === "bot" && children.elapsed && (
+          <p className="elapsed-time">⏱ 回覆時間：{children.elapsed} 秒</p>
+        )}
+        {role === "bot" && elapsed && (
+          <p className="elapsed-time">⏱ 回覆時間：{elapsed} 秒</p>
+        )}
       </div>
     </div>
   );
@@ -180,7 +186,7 @@ export default function ChatShell({ username, messages, sending, onSend, onLogou
       <div className="messages" ref={scrollerRef}>
         {messages.length === 0 && !sending ? <Welcome /> : null}
         {messages.map((m, i) => (
-          <Bubble key={i} role={m.role}>{m.content}</Bubble>
+          <Bubble key={i} role={m.role} elapsed={m.elapsed}>{m.content}</Bubble>
         ))}
         {sending ? <Typing /> : null}
       </div>

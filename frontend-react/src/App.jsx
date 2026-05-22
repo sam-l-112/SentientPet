@@ -117,6 +117,7 @@ export default function App() {
     }
     setMessages((m) => [...m, { role: "user", content: text }]);
     setSending(true);
+    const sendTime = Date.now(); // ← 記錄送出時間
 
     try {
       // 1. AI 對話
@@ -129,6 +130,7 @@ export default function App() {
         reply = toTW(reply);
       } catch { /* opencc 失敗就用原文 */ }
 
+      const elapsed = ((Date.now() - sendTime) / 1000).toFixed(1);
       setMessages((m) => [...m, { role: "bot", content: reply }]);
 
       // ── AI 回覆顯示後立刻解鎖 composer，讓使用者可以繼續打字 ──

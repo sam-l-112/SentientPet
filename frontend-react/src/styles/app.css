@@ -493,3 +493,10 @@ button { font-family: inherit; }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+.elapsed-time {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin: 6px 0 0;
+  text-align: right;
+}
