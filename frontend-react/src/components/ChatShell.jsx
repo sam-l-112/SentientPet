@@ -69,6 +69,46 @@ function Welcome() {
 
 function Composer({ onSend, disabled }) {
   const [v, setV] = React.useState("");
+  const [listening, setListening] = React.useState(false);
+  const recognitionRef = React.useRef(null);
+  
+  function startVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("此瀏覽器不支援語音輸入"); return; }
+    const rec = new SR();
+    rec.lang = "zh-TW";
+    rec.interimResults = true;
+    rec.onstart = () => setListening(true);
+    rec.onend = () => {
+      setListening(false);
+      setV((prev) => prev.replace(/\uFEFF.*$/, "").trim());
+      setTimeout(autoresize, 0);
+    };
+    rec.onresult = (e) => {
+      let final = "";
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      setV((prev) => {
+        const base = prev.replace(/\uFEFF.*$/, "");
+        return (base + final + "\uFEFF" + interim).slice(0, 2000);
+      });
+      setTimeout(autoresize, 0);
+    };
+    rec.onerror = (e) => { console.log("錯誤:", e.error); setListening(false); }
+    recognitionRef.current = rec;
+    rec.start();
+  }
+  
+  function stopVoice() {
+    recognitionRef.current?.stop();
+  }
+
   const ref = React.useRef(null);
 
   function autoresize() {
@@ -106,6 +146,17 @@ function Composer({ onSend, disabled }) {
             }
           }}
         />
+        <button
+          className={`mic-btn${listening ? " mic-active" : ""}`}
+          onClick={listening ? stopVoice : startVoice}
+          disabled={disabled}
+          title={listening ? "停止錄音" : "語音輸入"}
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 17.93V21h-2v2h6v-2h-2v-2.07A8.001 8.001 0 0 0 20 11h-2a6 6 0 0 1-12 0H4a8.001 8.001 0 0 0 7 7.93z" />
+          </svg>
+        </button>
+
         <button className="send-btn" onClick={go} disabled={disabled || !v.trim()}>
           <svg viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />

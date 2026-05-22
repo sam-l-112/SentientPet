@@ -470,3 +470,26 @@ button { font-family: inherit; }
 
 /* ────────── Misc helpers ────────── */
 /* (fade-in animation removed — relying on per-component animations instead.) */
+
+.mic-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--text-secondary, #888);
+  display: flex;
+  align-items: center;
+}
+.mic-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.mic-btn.mic-active {
+  color: #e05555;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
