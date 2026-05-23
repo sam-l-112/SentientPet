@@ -131,13 +131,14 @@ export default function App() {
       } catch { /* opencc 失敗就用原文 */ }
 
       const elapsed = ((Date.now() - sendTime) / 1000).toFixed(1);
-      setMessages((m) => [...m, { role: "bot", content: reply }]);
+      setMessages((m) => [...m, { role: "bot", content: reply, elapsed }]);
 
       // ── AI 回覆顯示後立刻解鎖 composer，讓使用者可以繼續打字 ──
       setSending(false);
 
       // 2. 情緒分析：完全背景執行，不阻塞聊天
       if (aiData.mes_id) {
+        const saStartTime = Date.now();
         setAnalyzing(true);
         API.analyzeSentiment({
           cs_id: Number(csId),
@@ -147,12 +148,18 @@ export default function App() {
           .then((saData) => {
             if (saData.success && saData.data) {
               const raw = saData.data;
+              const valence = Math.round(
+                (raw.joy * 1.5 - raw.sadness - raw.anger - raw.fear - raw.disgust + raw.surprise * 0.5 + 150) / 4
+              );
+              const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
+              
               setHistory((h) => [
                 ...h,
                 {
-                  score: Math.round(raw.valence ?? 50),
-                  stage: raw.stage ?? "neutral",
+                  score: valence,
+                  stage: computedStage,
                   raw,
+                  saElapsed: ((Date.now() - saStartTime) / 1000).toFixed(1),
                 },
               ]);
               setLatest(raw);

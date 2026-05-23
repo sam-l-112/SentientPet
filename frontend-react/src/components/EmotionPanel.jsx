@@ -188,6 +188,8 @@ export default function EmotionPanel({ history, analyzing }) {
     : "— 變化-不變";
 
   const radarData = hasData ? history[idx].raw : {};
+  const saElapsed = hasData ? history[idx].saElapsed : null;
+  const summary = hasData ? history[idx].raw.summary : null;
 
   return (
     <aside className="emotion-panel">
@@ -235,11 +237,14 @@ export default function EmotionPanel({ history, analyzing }) {
             })}
           </div>
         </div>
+        
+        {summary && <div className="ec-summary">總結：{summary}</div>}
 
         <div className="ec-hint">
           {analyzing
             ? "⏳ 情緒分析中…"
             : "點擊折線圖上的點，可切換到該次對話的雷達圖"}
+            {saElapsed && <div>⏱ 情緒分析時間：{saElapsed} 秒</div>}
         </div>
       </div>
     </aside>
