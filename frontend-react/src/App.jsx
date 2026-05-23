@@ -68,14 +68,24 @@ export default function App() {
           setMessages(msgData.messages.map((m) => ({
             role: m.role === "user" ? "user" : "bot",
             content: m.content,
+            elapsed: m.role === "assistant" ? m.reply_elapsed ?? null : null,
           })));
           const emotionData = await API.getEmotionHistory(latest.cs_id);
           if (emotionData.success && emotionData.history?.length > 0) {
-            setHistory(emotionData.history.map((r) => ({
-              score: Math.round(r.valence ?? 50),
-              stage: r.stage ?? "neutral",
-              raw: r,
-            })));
+            setHistory(emotionData.history.map((r) => {
+              const valence = r.valence != null
+                ? r.valence
+                : Math.round(
+                    (r.joy * 1.5 - r.sadness - r.anger - r.fear - r.disgust + r.surprise * 0.5 + 150) / 4
+                  );
+              const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
+              return {
+                score: valence,
+                stage: computedStage,
+                raw: r,
+                saElapsed: r.sa_elapsed ?? null,
+              };
+            }));
           }
         }
       } else {
