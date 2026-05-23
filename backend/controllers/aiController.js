@@ -133,14 +133,17 @@ exports.chat = async (req, res) => {
             content: m.content
         }))
 
-        // 5. 呼叫 AI
+        // 5. 呼叫 AI（計時）
+        const aiStart = Date.now();
         const aiReply = await aiService.callAI(messages)
+        const aiElapsedMs = Date.now() - aiStart;
+        const reply_elapsed = Math.round((aiElapsedMs / 1000) * 10) / 10; // seconds with 1 decimal
 
-        // 6. 存 AI
+        // 6. 存 AI（包含 reply_elapsed）
         const aiInsertResult = await pool.query(
-            `INSERT INTO messages (cs_id, role, content)
-             VALUES (?, 'assistant', ?)`,
-            [cs_id , aiReply]
+            `INSERT INTO messages (cs_id, role, content, reply_elapsed)
+             VALUES (?, 'assistant', ?, ?)`,
+            [cs_id, aiReply, reply_elapsed]
         );
 
         const aiupdatetime = await pool.query(
@@ -155,7 +158,8 @@ exports.chat = async (req, res) => {
             success: true, 
             reply: aiReply,
             mes_id: ai_mes_id,
-            user_mes_id: user_mes_id
+            user_mes_id: user_mes_id,
+            reply_elapsed
          })
 
     } catch (err) {

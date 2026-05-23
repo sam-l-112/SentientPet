@@ -12,7 +12,10 @@ exports.handleSentimentAnalysis = async (req, res) => {
     }
 
     try {
+        const saStart = Date.now();
         const response = await saService.analyzeTextFromPython(content, typing, history_last10 || []);
+        const saElapsedMs = Date.now() - saStart;
+        const sa_elapsed = Math.round((saElapsedMs / 1000) * 10) / 10; // seconds, 1 decimal
 
         // 🔥 【核心除錯】放最前面，保證 100% 執行！看清楚 Python 回傳的真實 JSON 結構
         console.log('====== Python 實際回傳的資料內容 ======', JSON.stringify(response, null, 2));
@@ -65,6 +68,10 @@ exports.handleSentimentAnalysis = async (req, res) => {
                 stage = 'neutral'; // fallback
         }
 
+        const valenceValue = (emotionData.vad && typeof emotionData.vad.valence === 'number')
+            ? Math.round(emotionData.vad.valence)
+            : null;
+
         const mappedData = {
             joy: Math.round(ekmanObj.happiness),
             sadness: Math.round(ekmanObj.sadness),
@@ -72,15 +79,15 @@ exports.handleSentimentAnalysis = async (req, res) => {
             fear: Math.round(ekmanObj.fear),
             disgust: Math.round(ekmanObj.disgust),
             surprise: Math.round(ekmanObj.surprise),
-            // valence: emotionData.vad.valence,
+            valence: valenceValue,
             stage: stage,
-            summary: emotionData.summary || ''
+            summary: emotionData.summary || ekmanObj.summary || ''
         };
 
         const query = `
             INSERT INTO Emotion_Tracker 
-            (cs_id, mes_id, joy, sadness, anger, fear, disgust, surprise, stage, summary) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (cs_id, mes_id, joy, sadness, anger, fear, disgust, surprise, valence, stage, sa_elapsed, summary) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const params = [
@@ -92,7 +99,9 @@ exports.handleSentimentAnalysis = async (req, res) => {
             mappedData.fear,
             mappedData.disgust,
             mappedData.surprise,
+            mappedData.valence,
             mappedData.stage,
+            sa_elapsed,
             mappedData.summary
         ];
 
@@ -115,7 +124,8 @@ exports.getEmotionalTracking = async (req, res) => {
     const { cs_id } = req.params;
     try {
         // const [rows] = await pool.execute()
-        const [rows] = await pool.execute(
+        //        []              axios.query
+        const rows = await pool.query(
             'SELECT * FROM Emotion_Tracker WHERE cs_id = ? ORDER BY analyzed_at ASC',
             [cs_id]
         );

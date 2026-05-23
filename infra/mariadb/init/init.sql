@@ -68,7 +68,7 @@ CREATE TABLE Emotion_Tracker (
     fear        SMALLINT CHECK (fear BETWEEN 0 AND 100),
     disgust     SMALLINT CHECK (disgust BETWEEN 0 AND 100),
     surprise    SMALLINT CHECK (surprise BETWEEN 0 AND 100),
-    -- valence     SMALLINT CHECK (valence BETWEEN 0 AND 100),
+    valence     SMALLINT CHECK (valence BETWEEN 0 AND 100),
     summary     SMALLINT CHECK (summary BETWEEN 0 AND 100),
 
     stage       VARCHAR(10) CHECK (stage IN ('negative', 'neutral', 'positive')),
