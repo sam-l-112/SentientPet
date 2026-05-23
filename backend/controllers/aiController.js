@@ -190,7 +190,7 @@ exports.getHistory = async (req, res) => {
 
         // 取得聊天資訊 mariadb 不需要解構
         const messages = await pool.query(
-            `SELECT role, content, message_at
+            `SELECT role, content, message_at , reply_elapsed
              FROM messages
              WHERE cs_id = ?
              ORDER BY message_at ASC`,
