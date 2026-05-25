@@ -48,7 +48,7 @@ exports.callAI = async (messages, systemPrompt = null) => {
     const models = [
         {
             name: process.env.NV_GEMINI,
-            label: 'NVIDIA Gemini',
+            label: 'NVIDIA Gemma',
             source: 'nvidia',
             url: process.env.NV_GSURL,
             apiKey: process.env.NV_GEMINI_KEY
