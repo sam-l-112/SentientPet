@@ -185,7 +185,7 @@ button { font-family: inherit; }
 .bubble {
   max-width: 68%; padding: 10px 16px;
   border-radius: 20px; line-height: 1.65;
-  word-break: break-word; font-size: 14px;
+  word-break: break-word; font-size: 1rem;
 }
 .row.bot .bubble {
   background: rgba(255,255,255,.65);
@@ -368,7 +368,7 @@ button { font-family: inherit; }
   color: var(--sp-ink);
   line-height: 1;
 }
-.ec-hint { font-size: 10px; color: var(--sp-faint); text-align: center; }
+.ec-hint { font-size: 12px; color: var(--sp-ink-soft); text-align: center; }
 
 /* ────────── Auth (login / register) page ────────── */
 .auth-page {
@@ -496,7 +496,12 @@ button { font-family: inherit; }
 
 .elapsed-time {
   font-size: 0.72rem;
-  color: #aaa;
+  color: var(--sp-ink-soft);
   margin: 6px 0 0;
   text-align: right;
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
 }

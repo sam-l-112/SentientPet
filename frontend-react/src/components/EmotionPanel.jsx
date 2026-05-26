@@ -29,7 +29,23 @@ function stageLabel(stage) {
 function Sparkline({ scores, selectedIdx, onSelect }) {
   const W = 308, H = 180;
   const PAD_X = 18, PAD_Y_TOP = 14, PAD_Y_BOT = 30;
+  const [zoom, setZoom] = React.useState(1);
   const xs = scores.length;
+  const scrollRef = React.useRef(null);
+  function handleWheel(e) {
+    e.preventDefault();
+    setZoom(prev => {
+      const next = prev + (e.deltaY < 0 ? 0.15 : -0.15);
+      return Math.max(1, Math.min(5, +next.toFixed(2)));
+    });
+    if (e.deltaY < 0) {
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+        }
+      }, 0);
+    }
+  }
   if (xs === 0) {
     return (
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%" }}>
@@ -40,9 +56,11 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
     );
   }
   const plotH = H - PAD_Y_TOP - PAD_Y_BOT;
-  const step = xs > 1 ? (W - PAD_X * 2) / (xs - 1) : 0;
+  const minStep = xs > 1 ? (W - PAD_X * 2) / (xs - 1) : 0;
+  const step = minStep * zoom;
+  const totalW = Math.max(W, PAD_X * 2 + step * (xs - 1));
   const pts = scores.map((s, i) => {
-    const x = xs > 1 ? PAD_X + i * step : W / 2;
+    const x = xs > 1 ? PAD_X + i * step : totalW / 2;
     const y = PAD_Y_TOP + (1 - s / 100) * plotH;
     return [x, y];
   });
@@ -50,8 +68,12 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
   const dFill =
     d +
     ` L${pts[pts.length - 1][0].toFixed(1)} ${H - PAD_Y_BOT} L${pts[0][0].toFixed(1)} ${H - PAD_Y_BOT} Z`;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%" }}>
+    return (
+      <div ref={scrollRef} style={{ overflowX: "auto", width: "100%" }}
+        onWheel={handleWheel}>
+      <svg viewBox={`0 0 ${totalW} ${H}`}
+           style={{ width: Math.max(308, totalW) + "px", height: "100%", display: "block" }}>
+      
       <defs>
         <linearGradient id="ec-grad" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor="#C98463" stopOpacity="0.45" />
@@ -88,6 +110,7 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
         );
       })}
     </svg>
+    </div>
   );
 }
 
@@ -242,7 +265,17 @@ export default function EmotionPanel({ history, analyzing }) {
 
         <div className="ec-hint">
           {analyzing
-            ? "⏳ 情緒分析中…"
+            ? (
+              <span>
+                {"⏳ 情緒分析中…".split("").map((ch, i) => (
+                  <span key={i} style={{
+                    display: "inline-block",
+                    animation: "wave 1.2s ease-in-out infinite",
+                    animationDelay: `${i * 0.08}s`,
+                  }}>{ch}</span>
+                ))}
+              </span>
+            )
             : "點擊折線圖上的點，可切換到該次對話的雷達圖"}
             {saElapsed && <div>⏱ 情緒分析時間：{saElapsed} 秒</div>}
         </div>

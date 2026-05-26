@@ -75,9 +75,11 @@ export default function App() {
           setHistory(emotionData.history.map((r) => {
             const valence = r.valence != null
               ? r.valence
-              : Math.round(
+              : Math.min(100, Math.max(0,
+                Math.round(
                   (r.joy * 1.5 - r.sadness - r.anger - r.fear - r.disgust + r.surprise * 0.5 + 150) / 4
-                );
+                )
+              ))
             const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
             return { score: valence, stage: computedStage, raw: r, saElapsed: r.sa_elapsed ?? null };
           }));
@@ -170,9 +172,11 @@ export default function App() {
               }
 
               const saElapsed = ((Date.now() - saStartTime) / 1000).toFixed(1);
-              const valence = Math.round(
-                (raw.joy * 1.5 - raw.sadness - raw.anger - raw.fear - raw.disgust + raw.surprise * 0.5 + 150) / 4
-              );
+              const valence = Math.min(100, Math.max(0,
+                Math.round(
+                  (raw.joy * 1.5 - raw.sadness - raw.anger - raw.fear - raw.disgust + raw.surprise * 0.5 + 150) / 4
+                )
+              ));
               const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
               setHistory((h) => [...h, {
                 score: valence,
