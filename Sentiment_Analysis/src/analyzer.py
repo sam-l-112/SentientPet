@@ -24,7 +24,7 @@ def _build_client() -> openai.OpenAI:
         return openai.OpenAI(
             base_url=hf_model_url,
             api_key=hf_token,
-            timeout=30,
+            timeout=90.0,
         )
 
     if openrouter_key:

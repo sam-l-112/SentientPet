@@ -125,7 +125,8 @@ exports.getEmotionalTracking = async (req, res) => {
     try {
         // const [rows] = await pool.execute()
         //        []              axios.query
-        const rows = await pool.query(
+        // const [rows] = await pool.execute(
+        const rows = await pool.execute(
             'SELECT * FROM Emotion_Tracker WHERE cs_id = ? ORDER BY analyzed_at ASC',
             [cs_id]
         );

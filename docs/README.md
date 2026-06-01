@@ -19,3 +19,5 @@
 [NGINX 設置自簽 SSL 憑證 (OpenSSL) 實作筆記](NGINX%20設置自簽%20SSL%20憑證%20(OpenSSL)%20實作筆記.md)
 
 [情感分析系統 (Node.js + Python) 資料庫與日誌除錯維護指南](./情感分析系統%20(Node.js%20+%20Python)%20資料庫與日誌除錯維護指南.md)
+
+[Python 情感分析服務 Debug 與優化紀錄](./Python%20情感分析服務%20Debug%20與優化紀錄.md)
