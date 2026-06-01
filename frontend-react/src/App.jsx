@@ -142,7 +142,7 @@ export default function App() {
         const saStartTime = Date.now();
         setSaError(false);
         setAnalyzing(true);
-        API.analyzeSentiment({ cs_id: Number(csId), mes_id: aiData.mes_id, content: reply })
+        API.analyzeSentiment({ cs_id: Number(csId), mes_id: aiData.mes_id, content: text })
           .then((saData) => {
             if (saData.success && saData.data) {
               const raw = saData.data;
