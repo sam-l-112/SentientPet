@@ -17,7 +17,7 @@ exports.handleSentimentAnalysis = async (req, res) => {
         const saElapsedMs = Date.now() - saStart;
         const sa_elapsed = Math.round((saElapsedMs / 1000) * 10) / 10; // seconds, 1 decimal
 
-        // 🔥 【核心除錯】放最前面，保證 100% 執行！看清楚 Python 回傳的真實 JSON 結構
+        // 核心除錯，放最前面，保證 100% 執行！看清楚 Python 回傳的真實 JSON 結構
         console.log('====== Python 實際回傳的資料內容 ======', JSON.stringify(response, null, 2));
 
         if (!response.success || !response.data) {
