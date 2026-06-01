@@ -76,13 +76,16 @@ def analyze():
         return jsonify({"success": True, "data": analysis})
     except AnalyzeTimeoutError as e:
         # API 超時錯誤，返回 504 Gateway Timeout
+        print(f"!!! 捕捉到錯誤: {e}", flush=True)
         return jsonify({"success": False, "error": "Service Timeout"}), 504
     except AnalyzeError as e:
         # 其他分析錯誤，返回 500
+        print(f"!!! 捕捉到錯誤: {e}", flush=True)
         return jsonify({"success": False, "error": str(e)}), 500
     except Exception as e:
-        # 未預期的內部錯誤
-        return jsonify({"success": False, "error": f"Internal Error"}), 500
+        # 未預期的內部錯誤，將錯誤印出到 journalctl
+        print(f"!!! 捕捉到錯誤: {e}", flush=True)
+        return jsonify({"success": False, "error": "Internal Error"}), 500
 
 
 PAUSE_THRESHOLD_SEC = 2.0
