@@ -9,6 +9,17 @@ import openai
 
 
 class AnalyzeError(Exception):
+    """通用分析錯誤"""
+    pass
+
+
+class AnalyzeTimeoutError(AnalyzeError):
+    """API 超時錯誤"""
+    pass
+
+
+class AnalyzeInternalError(AnalyzeError):
+    """內部伺服器錯誤"""
     pass
 
 # hf and openai setting
@@ -123,6 +134,7 @@ def analyze_message(
                 model=model,
                 messages=messages,
                 extra_headers=extra_headers,
+                timeout=90.0,
             )
             content = (resp.choices[0].message.content or "").strip()
             if not content:
@@ -134,6 +146,19 @@ def analyze_message(
                 raise AnalyzeError("模型回傳非 JSON，已跳過本次分析。") from e
 
             return data
+        except openai.APITimeoutError as e:
+            # 明確捕捉 API 超時錯誤
+            last_err = e
+            if attempt == 0:
+                if on_retry:
+                    try:
+                        on_retry("分析中，請稍候...")
+                    except Exception:  # noqa: BLE001
+                        pass
+                time.sleep(1.2)
+                continue
+            # 重試後仍然超時，拋出特定的超時異常
+            raise AnalyzeTimeoutError(f"API 請求超時：{e}") from e
         except Exception as e:  # noqa: BLE001
             last_err = e
             # OpenAI SDK 的錯誤型別在不同版本可能不同：用字串特徵做寬鬆判斷

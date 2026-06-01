@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify   
 
 # Path search
-from src.analyzer import AnalyzeError, analyze_message
+from src.analyzer import AnalyzeError, AnalyzeTimeoutError, analyze_message
 
 # Load environment variables from root .env and src/.env when available
 load_dotenv()
@@ -74,10 +74,15 @@ def analyze():
             model=model,
         )
         return jsonify({"success": True, "data": analysis})
+    except AnalyzeTimeoutError as e:
+        # API 超時錯誤，返回 504 Gateway Timeout
+        return jsonify({"success": False, "error": "Service Timeout"}), 504
     except AnalyzeError as e:
+        # 其他分析錯誤，返回 500
         return jsonify({"success": False, "error": str(e)}), 500
     except Exception as e:
-        return jsonify({"success": False, "error": f"伺服器錯誤：{e}"}), 500
+        # 未預期的內部錯誤
+        return jsonify({"success": False, "error": f"Internal Error"}), 500
 
 
 PAUSE_THRESHOLD_SEC = 2.0
