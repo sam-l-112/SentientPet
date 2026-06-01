@@ -32,6 +32,13 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
   const [zoom, setZoom] = React.useState(1);
   const xs = scores.length;
   const scrollRef = React.useRef(null);
+  const svgWrapRef = React.useRef(null);
+  React.useEffect(() => {
+    const el = svgWrapRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  });
   function handleWheel(e) {
     e.preventDefault();
     setZoom(prev => {
@@ -69,8 +76,8 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
     d +
     ` L${pts[pts.length - 1][0].toFixed(1)} ${H - PAD_Y_BOT} L${pts[0][0].toFixed(1)} ${H - PAD_Y_BOT} Z`;
     return (
-      <div ref={scrollRef} style={{ overflowX: "auto", width: "100%" }}
-        onWheel={handleWheel}>
+      <div ref={scrollRef} style={{ overflowX: "auto", width: "100%" }}>
+        <div ref={svgWrapRef}>
       <svg viewBox={`0 0 ${totalW} ${H}`}
            style={{ width: Math.max(308, totalW) + "px", height: "100%", display: "block" }}>
       
@@ -110,6 +117,7 @@ function Sparkline({ scores, selectedIdx, onSelect }) {
         );
       })}
     </svg>
+    </div>
     </div>
   );
 }
