@@ -39,6 +39,7 @@ export default function App() {
   const [mixColor,  setMixColor]  = React.useState(null);   // [r,g,b]
   const [monoOpacity, setMonoOpacity] = React.useState(0); // 0..1
   const [analyzing, setAnalyzing] = React.useState(false);
+  const [saError, setSaError] = React.useState(false);
 
   // ── 啟動：還原登入狀態 ───────────────────────────────
   React.useEffect(() => {
@@ -139,6 +140,7 @@ export default function App() {
       // 2. 情緒分析：完全背景執行，不阻塞聊天
       if (aiData.mes_id) {
         const saStartTime = Date.now();
+        setSaError(false);
         setAnalyzing(true);
         API.analyzeSentiment({ cs_id: Number(csId), mes_id: aiData.mes_id, content: reply })
           .then((saData) => {
@@ -187,7 +189,10 @@ export default function App() {
               setLatest(raw);
             }
           })
-          .catch((saErr) => { console.warn("SA 失敗（不影響聊天）:", saErr); })
+          .catch((saErr) => { 
+            console.warn("SA 失敗（不影響聊天）:", saErr);
+            setSaError(true);
+          })
           .finally(() => { setAnalyzing(false); });
       }
     } catch (err) {
@@ -210,7 +215,7 @@ export default function App() {
             onSend={onSend}
             onLogout={onLogout}
           />
-          <EmotionPanel history={history} analyzing={analyzing} />
+          <EmotionPanel history={history} analyzing={analyzing} saError={saError} />
         </div>
       )}
     </>

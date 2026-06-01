@@ -184,7 +184,7 @@ function Radar({ data }) {
   );
 }
 
-export default function EmotionPanel({ history, analyzing }) {
+export default function EmotionPanel({ history, analyzing, saError }) {
   const [selectedIdx, setSelectedIdx] = React.useState(null);
 
   // 新訊息進來時，自動跳到最新點
@@ -284,6 +284,8 @@ export default function EmotionPanel({ history, analyzing }) {
                 ))}
               </span>
             )
+              : saError
+            ? "⚠️ 情緒分析服務連線失敗"
             : "點擊折線圖上的點，可切換到該次對話的雷達圖"}
             {saElapsed && <div>⏱ 情緒分析時間：{saElapsed} 秒</div>}
         </div>
