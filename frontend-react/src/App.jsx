@@ -149,7 +149,7 @@ export default function App() {
 
               // ── 加權混色邏輯 ────────────────────────────────
               const EMOTION_RGB = {
-                joy:      [232, 160,  64],
+                joy:      [255, 217,  61],
                 sadness:  [ 91, 168, 216],
                 anger:    [224,  85,  85],
                 fear:     [155, 137, 212],

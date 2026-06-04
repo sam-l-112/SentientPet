@@ -9,14 +9,14 @@
 import React from "react";
 
 const EMOTIONS_META = [
-  { key: "joy",      label: "快樂", color: "#E24B4A" },
+  { key: "joy",      label: "快樂", color: "#FAC000" },
   { key: "sadness",  label: "悲傷", color: "#378ADD" },
-  { key: "anger",    label: "憤怒", color: "#D85A30" },
+  { key: "anger",    label: "憤怒", color: "#E24B4A" },
   { key: "fear",     label: "恐懼", color: "#7F77DD" },
   { key: "disgust",  label: "厭惡", color: "#1D9E75" },
-  { key: "surprise", label: "驚訝", color: "#BA7517" },
+  { key: "surprise", label: "驚訝", color: "#EC8B23" },
 ];
-
+ 
 function stageLabel(stage) {
   // 後端回傳英文 → 顯示中文
   switch (stage) {
