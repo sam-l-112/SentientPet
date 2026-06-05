@@ -1,5 +1,11 @@
 // App.jsx — 主應用：登入流程 + 聊天 + 情緒分析。
 //
+
+// 情緒分析背景泡泡球混色邏輯：
+//   1. 如果沒有任何情緒值大於 25，則背景泡泡球顏色逐漸變淡。
+//   2. 如果至少有一個情緒值大於 25，則背景泡泡球顏色根據各情緒值加權混合。
+//   3. 背景泡泡球顏色會逐漸變濃。
+
 // 流程：
 //   1. 啟動：讀 getSessions() 還原最新 session + 情緒歷史。
 //   2. 使用者送訊息：AI → sanitize → 顯示（含回覆時間） → SA（背景）。
@@ -147,14 +153,14 @@ export default function App() {
             if (saData.success && saData.data) {
               const raw = saData.data;
 
-              // ── 加權混色邏輯 ────────────────────────────────
+              // ── 背景泡泡球情緒分析混色邏輯 ────────────────────────────────
               const EMOTION_RGB = {
                 joy:      [255, 217,  61],
                 sadness:  [ 91, 168, 216],
                 anger:    [224,  85,  85],
                 fear:     [155, 137, 212],
                 disgust:  [123, 194, 138],
-                surprise: [232, 200,  74],
+                surprise: [212, 101,  26],
               };
               const ekKeys = Object.keys(EMOTION_RGB);
               const active = ekKeys.filter(k => (raw[k] ?? 0) >= 25);
