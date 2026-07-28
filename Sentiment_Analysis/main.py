@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify   
 
 # Path search
-from src.analyzer import AnalyzeError, AnalyzeTimeoutError, analyze_message
+from src.analyzer import AnalyzeError, AnalyzeTimeoutError, analyze_with_available_ai
 
 # Load environment variables from root .env and src/.env when available
 load_dotenv()
@@ -67,11 +67,12 @@ def analyze():
         else:
             model = 'google/gemma-4-31B-it:novita'
 
-        analysis = analyze_message(
+        analysis = analyze_with_available_ai(
             text=text,
             history_last10=history_last10,
             typing=typing,
-            model=model,
+            model_a=model,
+            model_b=model,
         )
         return jsonify({"success": True, "data": analysis})
     except AnalyzeTimeoutError as e:
