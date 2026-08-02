@@ -24,17 +24,32 @@ class AnalyzeInternalError(AnalyzeError):
     pass
 
 # hf and openai setting
+def _get_first_env(*keys: str, default: Optional[str] = None) -> Optional[str]:
+    for key in keys:
+        value = os.getenv(key)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return default
+
+
 def _build_client(provider: str = "primary") -> openai.OpenAI:
     provider_name = (provider or "primary").lower()
 
     if provider_name == "secondary":
-        hf_token = os.getenv("SECONDARY_HF_TOKEN") or os.getenv("HF_TOKEN")
-        openrouter_key = os.getenv("SECONDARY_OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
-        hf_model_url = os.getenv("SECONDARY_HF_MODEL_URL", os.getenv("HF_MODEL_URL", "https://router.huggingface.co/v1"))
+        hf_token = _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
+        openrouter_key = _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
+        hf_model_url = _get_first_env(
+            "SECONDARY_HF_MODEL_URL",
+            "HF_MODEL_URL_2",
+            "HF_MODEL_URL",
+            "LLM_BASE_URL",
+            "LLM_URL_2",
+            default="https://router.huggingface.co/v1",
+        )
     else:
-        hf_token = os.getenv("HF_TOKEN")
-        openrouter_key = os.getenv("OPENROUTER_API_KEY")
-        hf_model_url = os.getenv("HF_MODEL_URL", "https://router.huggingface.co/v1")
+        hf_token = _get_first_env("HF_TOKEN", "LLM_API_KEY")
+        openrouter_key = _get_first_env("OPENROUTER_API_KEY")
+        hf_model_url = _get_first_env("HF_MODEL_URL", "LLM_BASE_URL", default="https://router.huggingface.co/v1")
 
     if hf_token:
         if hf_model_url.endswith("/chat/completions"):
@@ -101,10 +116,13 @@ def _has_provider_config(provider: str = "primary") -> bool:
     provider_name = (provider or "primary").lower()
     if provider_name == "secondary":
         return bool(
-            os.getenv("SECONDARY_HF_TOKEN")
-            or os.getenv("SECONDARY_OPENROUTER_API_KEY")
+            _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
+            or _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
         )
-    return bool(os.getenv("HF_TOKEN") or os.getenv("OPENROUTER_API_KEY"))
+    return bool(
+        _get_first_env("HF_TOKEN", "LLM_API_KEY")
+        or _get_first_env("OPENROUTER_API_KEY")
+    )
 
 
 def analyze_message(
@@ -124,18 +142,26 @@ def analyze_message(
     """
     client = _build_client(provider=provider)
 
-    hf_token = os.getenv("HF_TOKEN")
-    secondary_hf_token = os.getenv("SECONDARY_HF_TOKEN")
-    openrouter_key = os.getenv("OPENROUTER_API_KEY")
-    secondary_openrouter_key = os.getenv("SECONDARY_OPENROUTER_API_KEY")
+    hf_token = _get_first_env("HF_TOKEN", "LLM_API_KEY")
+    secondary_hf_token = _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
+    openrouter_key = _get_first_env("OPENROUTER_API_KEY")
+    secondary_openrouter_key = _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
 
     if provider == "secondary":
         if secondary_hf_token and not secondary_openrouter_key:
-            model = os.getenv("SECONDARY_HF_MODEL_NAME_GEMINI", os.getenv("HF_MODEL_NAME_GEMINI", model))
+            model = _get_first_env(
+                "SECONDARY_HF_MODEL_NAME_GEMINI",
+                "HF_MODEL_NAME_GEMINI",
+                "HF_MODEL_NAME_2",
+                "HF_MODEL_NAME_SamLowe",
+                "LLM_MODEL2",
+                "LLM_MODEL",
+                default=model,
+            ) or model
         elif secondary_openrouter_key:
             pass
     elif hf_token and not openrouter_key:
-        model = os.getenv("HF_MODEL_NAME_GEMINI", model)
+        model = _get_first_env("HF_MODEL_NAME_GEMINI", "HF_MODEL_NAME_2", "HF_MODEL_NAME_SamLowe", "LLM_MODEL", default=model) or model
 
     payload = {
         "text": text,
@@ -240,42 +266,124 @@ def normalize_emotion_result(result: Dict[str, Any]) -> Dict[str, Any]:
         "summary": str(result.get("summary", "")),
     }
 
-def average_two_results(result_a: Dict[str, Any], result_b: Dict[str, Any]) -> Dict[str, Any]:
-    """計算兩個 AI 回傳結果的平均值，並重新計算 dominant_emotion。"""
-    norm_a = normalize_emotion_result(result_a)
-    norm_b = normalize_emotion_result(result_b)
+def average_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """計算多個 AI 回傳結果的平均值，並重新計算 dominant_emotion。"""
+    if not results:
+        raise AnalyzeError("至少需要 1 個分析結果才能進行平均。")
+
+    normalized_results = [normalize_emotion_result(result) for result in results]
 
     # 1. 計算 Ekman 六大情緒平均值（保留一位小數）
     avg_ekman = {}
     for emotion in ["happiness", "sadness", "anger", "fear", "disgust", "surprise"]:
-        val_a = norm_a["ekman"][emotion]
-        val_b = norm_b["ekman"][emotion]
-        avg_ekman[emotion] = round((val_a + val_b) / 2, 1)
+        total = sum(item["ekman"][emotion] for item in normalized_results)
+        avg_ekman[emotion] = round(total / len(normalized_results), 1)
 
     # 2. 根據平均值選出主要情緒 (Dominant Emotion)
     dominant_emotion = max(avg_ekman, key=avg_ekman.get)
 
     # 3. 計算 VAD 平均值（符合 prompt 的整數要求）
     avg_vad = {
-        "arousal": int(round((norm_a["vad"]["arousal"] + norm_b["vad"]["arousal"]) / 2)),
-        "dominance": int(round((norm_a["vad"]["dominance"] + norm_b["vad"]["dominance"]) / 2)),
+        "arousal": int(round(sum(item["vad"]["arousal"] for item in normalized_results) / len(normalized_results))),
+        "dominance": int(round(sum(item["vad"]["dominance"] for item in normalized_results) / len(normalized_results))),
     }
 
-    # 4. 組合雙模型 Summary
-    summary_a = norm_a["summary"]
-    summary_b = norm_b["summary"]
-    if summary_a and summary_b:
-        combined_summary = f"[模型A]: {summary_a} | [模型B]: {summary_b}"
+    # 4. 統整 context_shift 與 summary
+    context_values = [item["context_shift"] for item in normalized_results if item.get("context_shift")]
+    if context_values and len(set(context_values)) > 1:
+        combined_context_shift = "mixed"
+    elif context_values:
+        combined_context_shift = context_values[0]
     else:
-        combined_summary = summary_a or summary_b or "雙 AI 綜合分析完成。"
+        combined_context_shift = "stable"
+
+    summaries = [item["summary"] for item in normalized_results if item.get("summary")]
+    if summaries:
+        combined_summary = " | ".join(
+            f"[模型{i + 1}]: {summary}" for i, summary in enumerate(summaries)
+        )
+    else:
+        combined_summary = "多 AI 綜合分析完成。"
 
     return {
         "ekman": avg_ekman,
         "dominant_emotion": dominant_emotion,
         "vad": avg_vad,
-        "context_shift": norm_a["context_shift"],
+        "context_shift": combined_context_shift,
         "summary": combined_summary,
     }
+
+
+def average_two_results(result_a: Dict[str, Any], result_b: Dict[str, Any]) -> Dict[str, Any]:
+    """兼容原有兩個 AI 平均函式。"""
+    return average_results([result_a, result_b])
+
+
+def analyze_with_multiple_ai(
+    *,
+    text: str,
+    history_last10: List[Dict[str, Any]],
+    typing: Dict[str, Any],
+    models: Optional[List[str]] = None,
+    providers: Optional[List[str]] = None,
+    on_retry: Optional[Callable[[str], None]] = None,
+) -> Dict[str, Any]:
+    """
+    使用多個 AI 模型同時進行情緒分析並將結果平均。
+
+    - 採用 ThreadPoolExecutor 實現真實併發請求。
+    - 若部分模型失敗，仍會以成功模型的結果進行平均，確保穩定性。
+    """
+    if not models:
+        models = []
+
+    if not providers:
+        providers = ["primary"] * len(models)
+    elif len(providers) < len(models):
+        providers = providers + ["primary"] * (len(models) - len(providers))
+
+    if not any(_has_provider_config(provider) for provider in providers):
+        raise AnalyzeError("未設定任何可用的 AI API，無法進行多 AI 分析。")
+
+    results: List[Dict[str, Any]] = []
+    errors: List[str] = []
+
+    with ThreadPoolExecutor(max_workers=max(1, len(models))) as executor:
+        futures = []
+        for model, provider in zip(models, providers):
+            if not _has_provider_config(provider):
+                errors.append(f"[{provider}] 未設定可用 API")
+                continue
+            futures.append(
+                (
+                    executor.submit(
+                        analyze_message,
+                        text=text,
+                        history_last10=history_last10,
+                        typing=typing,
+                        model=model,
+                        on_retry=on_retry,
+                        provider=provider,
+                    ),
+                    model,
+                )
+            )
+
+        for future, model_name in futures:
+            try:
+                result = future.result()
+            except Exception as e:  # noqa: BLE001
+                errors.append(f"[{model_name}] 錯誤: {e}")
+            else:
+                results.append(result)
+
+    if not results:
+        raise AnalyzeError(f"多 AI 分析均失敗：\n" + "\n".join(errors))
+
+    if len(results) == 1:
+        return results[0]
+
+    return average_results(results)
 
 
 def analyze_with_two_ai(
@@ -295,80 +403,14 @@ def analyze_with_two_ai(
     - 採用 ThreadPoolExecutor 實現真實併發請求。
     - 若單一模型失敗，自動降級回傳成功模型的結果，確保穩定性。
     """
-    if not _has_provider_config(provider_a) and not _has_provider_config(provider_b):
-        raise AnalyzeError("未設定任何可用的 AI API，無法進行雙 AI 分析。")
-
-    if not _has_provider_config(provider_a):
-        return analyze_message(
-            text=text,
-            history_last10=history_last10,
-            typing=typing,
-            model=model_b,
-            on_retry=on_retry,
-            provider=provider_b,
-        )
-
-    if not _has_provider_config(provider_b):
-        return analyze_message(
-            text=text,
-            history_last10=history_last10,
-            typing=typing,
-            model=model_a,
-            on_retry=on_retry,
-            provider=provider_a,
-        )
-
-    res_a, res_b = None, None
-    err_a, err_b = None, None
-
-    # 同時向 Model A 與 Model B 發起 API 請求
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        future_a = executor.submit(
-            analyze_message,
-            text=text,
-            history_last10=history_last10,
-            typing=typing,
-            model=model_a,
-            on_retry=on_retry,
-            provider=provider_a,
-        )
-        future_b = executor.submit(
-            analyze_message,
-            text=text,
-            history_last10=history_last10,
-            typing=typing,
-            model=model_b,
-            on_retry=on_retry,
-            provider=provider_b,
-        )
-
-        try:
-            res_a = future_a.result()
-        except Exception as e:
-            err_a = e
-
-        try:
-            res_b = future_b.result()
-        except Exception as e:
-            err_b = e
-
-    # --- 結果彙整與降級機制 (Fallback) ---
-    # 1. 兩個模型均成功：取平均值
-    if res_a and res_b:
-        return average_two_results(res_a, res_b)
-
-    # 2. 僅 Model A 成功
-    if res_a:
-        res_a["summary"] = f"(Model B 請求失敗，僅採用 Model A 結果) {res_a.get('summary', '')}"
-        return res_a
-
-    # 3. 僅 Model B 成功
-    if res_b:
-        res_b["summary"] = f"(Model A 請求失敗，僅採用 Model B 結果) {res_b.get('summary', '')}"
-        return res_b
-
-    # 4. 兩個模型均失敗：拋出異常
-    raise AnalyzeError(f"雙 AI 分析均失敗：\n[Model A 錯誤]: {err_a}\n[Model B 錯誤]: {err_b}")
+    return analyze_with_multiple_ai(
+        text=text,
+        history_last10=history_last10,
+        typing=typing,
+        models=[model_a, model_b],
+        providers=[provider_a, provider_b],
+        on_retry=on_retry,
+    )
 
 
 def analyze_with_available_ai(
