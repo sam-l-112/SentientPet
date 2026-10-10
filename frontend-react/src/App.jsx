@@ -8,7 +8,8 @@
 
 // 流程：
 //   1. 啟動：讀 getSessions() 還原最新 session + 情緒歷史。
-//   2. 使用者送訊息：AI → sanitize → 顯示（含回覆時間） → SA（背景）。
+//   2. 使用者送訊息：先存訊息取 user_mes_id → AI 對話與 SA（背景）同時進行；
+//      AI 回覆 → sanitize → 顯示（含回覆時間）。後端無 user-messages API 時退回舊流程。
 //   3. 登出：清 token + user，保留 current_cs_id 讓下次登入延續。
 
 import React from "react";
@@ -129,8 +130,18 @@ export default function App() {
     const sendTime = Date.now(); // ← 記錄送出時間
 
     try {
-      // 1. AI 對話
-      const aiData = await API.sendMessage(csId, text);
+      // 0. 先存使用者訊息取得 user_mes_id，之後情緒分析與聊天 AI 同時進行
+      let userMesId = null;
+      try {
+        const saved = await API.saveUserMessage(csId, text);
+        if (saved.success) userMesId = saved.user_mes_id;
+      } catch { /* 後端尚未提供此 API → 退回舊流程（聊天回覆後再做情緒分析） */ }
+
+      // 1. 情緒分析：有 user_mes_id 就立刻啟動（背景執行，不等聊天 AI）
+      if (userMesId) runSentiment(text, userMesId);
+
+      // 2. AI 對話（與情緒分析並行）
+      const aiData = await API.sendMessage(csId, text, userMesId);
       if (!aiData.success) throw new Error(aiData.message || "AI 回覆失敗");
 
       let reply = cleanReply(sanitizeAnswer(aiData.reply));
@@ -143,12 +154,21 @@ export default function App() {
       // ── AI 回覆顯示後立刻解鎖 composer ──
       setSending(false);
 
-      // 2. 情緒分析：完全背景執行，不阻塞聊天
-      if (aiData.mes_id) {
+      // 3. 舊流程相容：沒拿到 user_mes_id 才在聊天回覆後補跑情緒分析
+      if (!userMesId && aiData.mes_id) runSentiment(text, aiData.mes_id);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "未知錯誤";
+      setMessages((m) => [...m, { role: "bot", content: `⚠️ ${msg}` }]);
+      setSending(false);
+    }
+  }
+
+  // ── 情緒分析：完全背景執行，不阻塞聊天 ─────────────────
+  function runSentiment(text, mesId) {
         const saStartTime = Date.now();
         setSaError(false);
         setAnalyzing(true);
-        API.analyzeSentiment({ cs_id: Number(csId), mes_id: aiData.mes_id, content: text })
+        API.analyzeSentiment({ cs_id: Number(csId), mes_id: mesId, content: text })
           .then((saData) => {
             if (saData.success && saData.data) {
               const raw = saData.data;
@@ -200,12 +220,6 @@ export default function App() {
             setSaError(true);
           })
           .finally(() => { setAnalyzing(false); });
-      }
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message || "未知錯誤";
-      setMessages((m) => [...m, { role: "bot", content: `⚠️ ${msg}` }]);
-      setSending(false);
-    }
   }
 
   return (

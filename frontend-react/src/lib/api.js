@@ -51,8 +51,14 @@ export async function getSessionMessages(csId) {
   return data; // { success, messages: [{ role, content, message_at }] }
 }
 
-export async function sendMessage(csId, content) {
-  const { data } = await api.post(`/api/ai/sessions/${csId}/messages`, { content });
+// 先只存使用者訊息，取得 user_mes_id，讓聊天 AI 與情緒分析可同時啟動
+export async function saveUserMessage(csId, content) {
+  const { data } = await api.post(`/api/ai/sessions/${csId}/user-messages`, { content });
+  return data; // { success, user_mes_id }
+}
+
+export async function sendMessage(csId, content, userMesId) {
+  const { data } = await api.post(`/api/ai/sessions/${csId}/messages`, { content, user_mes_id: userMesId });
   return data; // { success, reply, mes_id, user_mes_id }
 }
 
