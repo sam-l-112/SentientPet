@@ -55,14 +55,14 @@ exports.callAI = async (messages, systemPrompt = null) => {
         },
         {
             name: process.env.NV_MINIMAX,
-            label: 'NVIDIA MiniMax',
+            label: 'NVIDIA muse-glimmer',
             source: 'nvidia',
             url: process.env.NV_MSURL,
             apiKey: process.env.NV_MINIMAX_KEY
         },
         {
             name: process.env.NV_DEEPSEEK,
-            label: 'NVIDIA DeepSeek',
+            label: 'NVIDIA integrate',
             source: 'nvidia',
             url: process.env.NVIDIA_DSURL,
             apiKey: process.env.NV_DEEPSEEK_KEY

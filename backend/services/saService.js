@@ -2,7 +2,7 @@
  * 負責與 Python Port 5000 溝通的服務
  */
 
-const FETCH_TIMEOUT_MS = 100000;
+const FETCH_TIMEOUT_MS = 200000;
 
 exports.analyzeTextFromPython = async (text, typing = null, history_last10 = []) => {
     const baseUrl = process.env.PYTHON_API_URL_sa?.replace(/\/+$/, '') || 'http://127.0.0.1:5000';
