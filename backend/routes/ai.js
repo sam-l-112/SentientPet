@@ -14,6 +14,7 @@ router.post('/sessions',         authMiddleware, aiController.createSession)
 router.get('/sessions',         authMiddleware, aiController.getSessions)
 
 // ==== messages ===
+router.post('/sessions/:cs_id/user-messages',        authMiddleware, aiController.saveUserMessages)
 router.post('/sessions/:cs_id/messages',        authMiddleware, aiController.chat)
 router.get('/sessions/:cs_id/messages',        authMiddleware, aiController.getHistory)
 // router.get('/history/:cs_id',   authMiddleware, aiController.getHistory)

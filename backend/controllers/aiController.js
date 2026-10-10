@@ -172,6 +172,115 @@ exports.chat = async (req, res) => {
     }
 }
 
+// -- 只需要存入使用著訊息 user_id 讓前端與 sentiment analysis 同步
+exports.saveUserMessages = async (req, res) => {
+    // const chat_session_time_date = req.params.session_time
+    const cs_id = req.params.cs_id
+    // const { content } = req.body
+    const { content, user_mes_id: given_user_mes_id } = req.body
+    const user_id = req.user.user_id
+
+    if (!cs_id || !content) {
+        return res.status(400).json({ success: false, message: 'Missing conversation error' })
+    }
+
+    try {
+        // 確認 session 屬於此使用者
+        // mariadb 不需要解構
+        const session = await pool.query(
+            'SELECT * FROM chat_sessions WHERE cs_id = ? AND user_id = ?',
+            [cs_id, user_id]
+        )
+        if (session.length === 0) {
+            return res.status(403).json({ success: false, message: '無存取此對話' })
+        }
+        const result = await pool.query(
+            `INSERT INTO messages (cs_id , role , content) VALUES(? , 'user' , ?)`,
+            [cs_id, content]
+        )
+        res.json({ success:true, user_mes_id:Number(result.insertId)})
+    } catch (err) {
+        console.error('--- saveuserMessages error ----', err.message) 
+        res.status(500).json({ success: false,message: '儲存訊息失敗'})
+
+        // 1. 存入使用者訊息
+        // const userInsertResult =  await pool.query(
+        //     `INSERT INTO messages (cs_id, role, content)
+        //      VALUES (?, 'user', ?)`,
+        //     [cs_id, content]
+        // )
+        // const user_mes_id = Number(userInsertResult.insertId);
+        // 1. 使用者訊息:前端已先呼叫 /user-messages 存過就沿用,否則照舊在這裡存(相容舊版前端)
+        let user_mes_id
+        if (given_user_mes_id) {
+        const own = await pool.query(
+            `SELECT mes_id FROM messages WHERE mes_id = ? AND cs_id = ? 
+            AND role = 'user'`,
+            [given_user_mes_id, cs_id]
+        )
+        if (own.length === 0) {
+            return res.status(400).json({ success: false, message: 'user_mes_id 不屬於此對話' })
+        }
+        user_mes_id = Number(given_user_mes_id)
+        } else {
+        const userInsertResult = await pool.query(
+            `INSERT INTO messages (cs_id, role, content) VALUES (?, 'user', ?)`,
+            [cs_id, content]
+        )
+        user_mes_id = Number(userInsertResult.insertId)
+        }
+
+        // 2. 取得歷史訊息
+        // mariadb 不需要解構
+        const history = await pool.query(
+            `SELECT role, content FROM (
+                SELECT role, content, message_at
+                FROM messages
+                WHERE cs_id = ?
+                ORDER BY message_at DESC
+                LIMIT 20 
+             ) AS sub_query
+             ORDER BY message_at ASC`,
+            [cs_id]
+        )
+// DESC
+        // 4. 組合 messages
+        const messages = history.map(m => ({
+            role:    m.role,
+            content: m.content
+        }))
+
+        // 5. 呼叫 AI（計時）
+        const aiStart = Date.now();
+        const aiReply = await aiService.callAI(messages)
+        const aiElapsedMs = Date.now() - aiStart;
+        const reply_elapsed = Math.round((aiElapsedMs / 1000) * 10) / 10; // seconds with 1 decimal
+
+        // 6. 存 AI（包含 reply_elapsed）
+        const aiInsertResult = await pool.query(
+            `INSERT INTO messages (cs_id, role, content, reply_elapsed)
+             VALUES (?, 'assistant', ?, ?)`,
+            [cs_id, aiReply, reply_elapsed]
+        );
+
+        const aiupdatetime = await pool.query(
+            `UPDATE chat_sessions SET updated_at = NOW() 
+             WHERE cs_id = ?`,
+            [cs_id]
+        )
+
+        const ai_mes_id = Number(aiInsertResult.insertId);
+
+        res.json({ 
+            success: true, 
+            reply: aiReply,
+            mes_id: ai_mes_id,
+            user_mes_id: user_mes_id,
+            reply_elapsed
+         })
+    }
+}
+
 // ── 取得聊天紀錄 ──────────────────────────────────────
 exports.getHistory = async (req, res) => {
     // const chat_session_time_date = req.params.session_time || req.params.chat_session_time_date
