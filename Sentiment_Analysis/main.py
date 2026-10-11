@@ -11,15 +11,17 @@ from typing import Any, Dict, List, Tuple
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify   
 
-# Path search
-from src.analyzer import AnalyzeError, AnalyzeTimeoutError, analyze_with_available_ai
+# Load the single service configuration from the directory containing main.py.
+root_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(dotenv_path=os.path.join(root_dir, ".env"), override=False)
 
-# Load environment variables from root .env and src/.env when available
-load_dotenv()
-root_dir = os.path.dirname(__file__)
-src_dotenv = os.path.join(root_dir, "src", ".env")
-if os.path.exists(src_dotenv):
-    load_dotenv(src_dotenv, override=False)
+# Path search
+from src.analyzer import (
+    AnalyzeError,
+    AnalyzeTimeoutError,
+    analyze_with_configured_models,
+)
+
 from src.display import (
     init_console,
     render_analysis,
@@ -30,7 +32,6 @@ from src.display import (
 )
 from src.history import ConversationHistory
 
-load_dotenv()
 app = Flask(__name__)
 
 # api 結構
@@ -44,48 +45,20 @@ def analyze():
     if not text:
         return jsonify({"success": False, "error": "text 欄位為必填"}), 400
 
-    history_last10 = data.get('history_last10') or []
-    typing = data.get('typing')
-    if not isinstance(typing, dict):
-        typing = {
-            "timestamps": [],
-            "duration_sec": 0.0,
-            "total_chars": len(text),
-            "wpm": 0,
-            "backspaces": 0,
-            "pauses": 0,
-            "hesitation_index": 0.0,
-        }
-
     try:
-        if data.get('model'):
-            model = data.get('model')
-        elif os.getenv('HF_TOKEN'):
-            model = os.getenv('HF_MODEL_NAME_GEMINI', 'google/gemma-4-31B-it:novita')
-        elif os.getenv('OPENROUTER_API_KEY'):
-            model = 'openai/gpt-oss-120b:free'
-        else:
-            model = 'google/gemma-4-31B-it:novita'
-
-        analysis = analyze_with_available_ai(
-            text=text,
-            history_last10=history_last10,
-            typing=typing,
-            model_a=model,
-            model_b=model,
-        )
+        analysis = analyze_with_configured_models(text=text)
         return jsonify({"success": True, "data": analysis})
     except AnalyzeTimeoutError as e:
         # API 超時錯誤，返回 504 Gateway Timeout
-        print(f"!!! 捕捉到錯誤: {e}", flush=True)
-        return jsonify({"success": False, "error": "Service Timeout"}), 504
+        app.logger.warning("情緒分析服務逾時：%s", e)
+        return jsonify({"success": False, "error": "情緒分析暫時無法完成，請稍後再試。"}), 504
     except AnalyzeError as e:
         # 其他分析錯誤，返回 500
-        print(f"!!! 捕捉到錯誤: {e}", flush=True)
-        return jsonify({"success": False, "error": str(e)}), 500
+        app.logger.error("情緒分析服務錯誤：%s", e)
+        return jsonify({"success": False, "error": "情緒分析暫時無法完成，請稍後再試。"}), 500
     except Exception as e:
         # 未預期的內部錯誤，將錯誤印出到 journalctl
-        print(f"!!! 捕捉到錯誤: {e}", flush=True)
+        app.logger.exception("情緒分析服務發生未預期錯誤：%s", e)
         return jsonify({"success": False, "error": "Internal Error"}), 500
 
 
@@ -187,7 +160,6 @@ def typing_to_dict(t: TypingCapture) -> Dict[str, Any]:
 
 
 def main() -> int:
-    load_dotenv()
     init_console()
 
     cuda_ok = bool(torch.cuda.is_available())
@@ -250,4 +222,3 @@ if __name__ == "__main__":
 # api server python Start
     print("python server 啟動 API (port 5000)")
     app.run(host='127.0.0.1', port=5000, debug=True)
-

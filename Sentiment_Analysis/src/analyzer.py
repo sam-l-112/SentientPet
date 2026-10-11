@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import json
+import logging
+import math
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Dict, List, Optional
 
 import openai
+import requests
+
+logger = logging.getLogger(__name__)
 
 
 class AnalyzeError(Exception):
@@ -36,20 +41,21 @@ def _build_client(provider: str = "primary") -> openai.OpenAI:
     provider_name = (provider or "primary").lower()
 
     if provider_name == "secondary":
-        hf_token = _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
-        openrouter_key = _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
+        hf_token = _get_first_env("SECONDARY_HF_TOKEN")
+        openrouter_key = _get_first_env("SECONDARY_OPENROUTER_API_KEY")
         hf_model_url = _get_first_env(
             "SECONDARY_HF_MODEL_URL",
-            "HF_MODEL_URL_2",
             "HF_MODEL_URL",
-            "LLM_BASE_URL",
-            "LLM_URL_2",
             default="https://router.huggingface.co/v1",
         )
     else:
         hf_token = _get_first_env("HF_TOKEN", "LLM_API_KEY")
         openrouter_key = _get_first_env("OPENROUTER_API_KEY")
-        hf_model_url = _get_first_env("HF_MODEL_URL", "LLM_BASE_URL", default="https://router.huggingface.co/v1")
+        hf_model_url = _get_first_env(
+            "HF_MODEL_URL",
+            "LLM_BASE_URL",
+            default="https://router.huggingface.co/v1",
+        )
 
     if hf_token:
         if hf_model_url.endswith("/chat/completions"):
@@ -59,6 +65,7 @@ def _build_client(provider: str = "primary") -> openai.OpenAI:
             base_url=hf_model_url,
             api_key=hf_token,
             timeout=90.0,
+            max_retries=0,
         )
 
     if openrouter_key:
@@ -67,6 +74,7 @@ def _build_client(provider: str = "primary") -> openai.OpenAI:
             base_url=base_url,
             api_key=openrouter_key,
             timeout=30,
+            max_retries=0,
         )
 
     raise AnalyzeError(
@@ -99,6 +107,26 @@ SYSTEM_PROMPT = """
 """.strip()
 
 
+GO_EMOTIONS_TO_EKMAN = {
+    "happiness": ("admiration", "amusement", "approval", "caring", "excitement", "gratitude", "joy", "love", "optimism", "pride", "relief"),
+    "sadness": ("disappointment", "grief", "remorse", "sadness"),
+    "anger": ("anger", "annoyance", "disapproval"),
+    "fear": ("fear", "nervousness"),
+    "disgust": ("disgust",),
+    "surprise": ("surprise", "realization"),
+}
+
+EMOTION_NAMES_ZH = {
+    "happiness": "快樂",
+    "sadness": "悲傷",
+    "anger": "憤怒",
+    "fear": "恐懼",
+    "disgust": "厭惡",
+    "surprise": "驚訝",
+    "neutral": "中性",
+}
+
+
 def _safe_json_loads(s: str) -> Dict[str, Any]:
     try:
         return json.loads(s)
@@ -112,12 +140,141 @@ def _safe_json_loads(s: str) -> Dict[str, Any]:
         raise
 
 
+def _parse_go_emotions_response(response_data: Any) -> Dict[str, float]:
+    """Parse Hugging Face text-classification scores without assuming one response shape."""
+    while isinstance(response_data, list) and len(response_data) == 1 and isinstance(response_data[0], list):
+        response_data = response_data[0]
+
+    if not isinstance(response_data, list):
+        raise AnalyzeError("Hugging Face 情緒分類回傳格式不正確。")
+
+    scores: Dict[str, float] = {}
+    for item in response_data:
+        if not isinstance(item, dict) or not isinstance(item.get("label"), str):
+            continue
+        try:
+            score = float(item["score"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        if math.isfinite(score):
+            label = item["label"].lower()
+            scores[label] = max(scores.get(label, 0.0), min(1.0, max(0.0, score)))
+
+    if not scores:
+        raise AnalyzeError("Hugging Face 情緒分類沒有回傳有效標籤分數。")
+    return scores
+
+
+def _go_emotions_to_analysis(scores: Dict[str, float]) -> Dict[str, Any]:
+    ekman = {
+        emotion: round(min(1.0, sum(scores.get(label, 0.0) for label in labels)) * 100, 1)
+        for emotion, labels in GO_EMOTIONS_TO_EKMAN.items()
+    }
+    dominant_emotion = max(ekman, key=ekman.get)
+    dominant_score = ekman[dominant_emotion] / 100
+    neutral_score = scores.get("neutral", 0.0)
+    if neutral_score >= dominant_score:
+        dominant_emotion = "neutral"
+        dominant_score = neutral_score
+
+    positive = ekman["happiness"] / 100
+    negative = sum(ekman[key] for key in ("sadness", "anger", "fear", "disgust")) / 100
+    polarity_total = positive + negative
+    valence = 50.0 if polarity_total == 0 else 50 + 50 * (positive - negative) / polarity_total
+    valence = round(min(100.0, max(0.0, valence)), 1)
+
+    emotion_weights = {
+        "happiness": (0.65, 0.7),
+        "sadness": (0.25, 0.3),
+        "anger": (0.7, 0.8),
+        "fear": (0.2, 0.8),
+        "disgust": (0.4, 0.6),
+        "surprise": (0.5, 0.8),
+    }
+    weights_total = sum(ekman.values())
+    if weights_total:
+        arousal = sum(ekman[key] * values[1] for key, values in emotion_weights.items()) / weights_total * 100
+        dominance = sum(ekman[key] * values[0] for key, values in emotion_weights.items()) / weights_total * 100
+    else:
+        arousal = dominance = 50.0
+
+    positive_present = positive >= 0.2
+    negative_present = negative >= 0.2
+    if positive_present and negative_present:
+        context_shift = "mixed"
+    elif valence >= 60:
+        context_shift = "up"
+    elif valence <= 40:
+        context_shift = "down"
+    else:
+        context_shift = "stable"
+
+    summary = (
+        f"主要情緒為{EMOTION_NAMES_ZH[dominant_emotion]}"
+        f"（模型分數 {dominant_score * 100:.1f}%）。"
+    )
+    return {
+        "ekman": ekman,
+        "dominant_emotion": dominant_emotion,
+        "vad": {
+            "valence": valence,
+            "arousal": round(min(100.0, max(0.0, arousal))),
+            "dominance": round(min(100.0, max(0.0, dominance))),
+        },
+        "context_shift": context_shift,
+        "summary": summary,
+    }
+
+
+def analyze_with_hf_emotion_classifier(text: str) -> Dict[str, Any]:
+    """Run GoEmotions through the Hugging Face text-classification endpoint."""
+    token = _get_first_env("HF_TOKEN_2")
+    model = _get_first_env("HF_MODEL_NAME_SamLowe", default="SamLowe/roberta-base-go_emotions")
+    endpoint = _get_first_env(
+        "HF_MODEL_URL_2",
+        default=f"https://router.huggingface.co/hf-inference/models/{model}",
+    )
+    if not token:
+        raise AnalyzeError("未設定 Hugging Face 情緒分類 token（HF_TOKEN_2）。")
+    if not endpoint:
+        raise AnalyzeError("未設定 Hugging Face 情緒分類 API URL（HF_MODEL_URL_2）。")
+    if endpoint.rstrip("/").endswith("/chat/completions"):
+        raise AnalyzeError("GoEmotions 是分類模型，請使用 Hugging Face text-classification endpoint。")
+
+    try:
+        response = requests.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {token}"},
+            json={
+                "inputs": text,
+                "parameters": {"function_to_apply": "sigmoid", "top_k": None},
+                "options": {"wait_for_model": True},
+            },
+            timeout=45.0,
+        )
+        response.raise_for_status()
+    except requests.Timeout as error:
+        raise AnalyzeTimeoutError("Hugging Face 情緒分類請求逾時。") from error
+    except requests.RequestException as error:
+        status = error.response.status_code if error.response is not None else "connection"
+        raise AnalyzeError(f"Hugging Face 情緒分類請求失敗（{status}）。") from error
+
+    try:
+        response_data = response.json()
+    except ValueError as error:
+        raise AnalyzeError("Hugging Face 情緒分類回傳了無效 JSON。") from error
+    if isinstance(response_data, dict) and response_data.get("error"):
+        raise AnalyzeError(f"Hugging Face 情緒分類錯誤：{response_data['error']}")
+
+    return _go_emotions_to_analysis(_parse_go_emotions_response(response_data))
+
+
 def _has_provider_config(provider: str = "primary") -> bool:
     provider_name = (provider or "primary").lower()
     if provider_name == "secondary":
         return bool(
-            _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
-            or _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
+            _get_first_env("SECONDARY_HF_TOKEN")
+            or _get_first_env("SECONDARY_OPENROUTER_API_KEY")
         )
     return bool(
         _get_first_env("HF_TOKEN", "LLM_API_KEY")
@@ -142,26 +299,16 @@ def analyze_message(
     """
     client = _build_client(provider=provider)
 
-    hf_token = _get_first_env("HF_TOKEN", "LLM_API_KEY")
-    secondary_hf_token = _get_first_env("SECONDARY_HF_TOKEN", "HF_TOKEN_2", "HF_TOKEN", "LLM_API_2", "LLM_API_KEY")
-    openrouter_key = _get_first_env("OPENROUTER_API_KEY")
-    secondary_openrouter_key = _get_first_env("SECONDARY_OPENROUTER_API_KEY", "OPENROUTER_API_KEY")
-
     if provider == "secondary":
-        if secondary_hf_token and not secondary_openrouter_key:
-            model = _get_first_env(
-                "SECONDARY_HF_MODEL_NAME_GEMINI",
-                "HF_MODEL_NAME_GEMINI",
-                "HF_MODEL_NAME_2",
-                "HF_MODEL_NAME_SamLowe",
-                "LLM_MODEL2",
-                "LLM_MODEL",
-                default=model,
-            ) or model
-        elif secondary_openrouter_key:
-            pass
-    elif hf_token and not openrouter_key:
-        model = _get_first_env("HF_MODEL_NAME_GEMINI", "HF_MODEL_NAME_2", "HF_MODEL_NAME_SamLowe", "LLM_MODEL", default=model) or model
+        model = _get_first_env("SECONDARY_HF_MODEL_NAME", default=model) or model
+    else:
+        model = _get_first_env(
+            "HF_MODEL_NAME_GEMINI",
+            "HF_MODEL_NAME_2",
+            "HF_MODEL_NAME_SamLowe",
+            "LLM_MODEL",
+            default=model,
+        ) or model
 
     payload = {
         "text": text,
@@ -189,7 +336,7 @@ def analyze_message(
                 model=model,
                 messages=messages,
                 extra_headers=extra_headers,
-                timeout=90.0,
+                timeout=45.0,
             )
             content = (resp.choices[0].message.content or "").strip()
             if not content:
@@ -244,21 +391,104 @@ def analyze_message(
 
     raise AnalyzeError(f"分析失敗：{last_err}")
 
+
+def analyze_with_configured_models(
+    *,
+    text: str,
+) -> Dict[str, Any]:
+    """Compare the configured GoEmotions classifier with the configured chat model."""
+    chat_model = _get_first_env("HF_MODEL_NAME_GEMINI")
+    if not chat_model:
+        raise AnalyzeError("未設定輔助情緒分析模型（HF_MODEL_NAME_GEMINI）。")
+    if not _get_first_env("HF_TOKEN"):
+        raise AnalyzeError("未設定輔助情緒分析服務 token（HF_TOKEN）。")
+    if not _get_first_env("HF_MODEL_URL"):
+        raise AnalyzeError("未設定輔助情緒分析 API URL（HF_MODEL_URL）。")
+    if not _get_first_env("HF_TOKEN_2"):
+        raise AnalyzeError("未設定主要 GoEmotions 模型 token（HF_TOKEN_2）。")
+    if not _get_first_env("HF_MODEL_URL_2"):
+        raise AnalyzeError("未設定主要 GoEmotions 模型 API URL（HF_MODEL_URL_2）。")
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        classifier_future = executor.submit(analyze_with_hf_emotion_classifier, text)
+        chat_future = executor.submit(
+            analyze_message,
+            text=text,
+            history_last10=[],
+            typing={},
+            model=chat_model,
+            provider="primary",
+        )
+
+        results: List[tuple[str, Dict[str, Any]]] = []
+        errors: List[tuple[str, AnalyzeError]] = []
+        for label, future in (
+            ("GoEmotions 主模型", classifier_future),
+            ("Muse 輔助模型", chat_future),
+        ):
+            try:
+                results.append((label, future.result()))
+            except AnalyzeError as error:
+                errors.append((label, error))
+
+    if not results:
+        details = "；".join(f"{label}: {error}" for label, error in errors)
+        logger.error("情緒分析模型皆失敗：%s", details)
+        if any(isinstance(error, AnalyzeTimeoutError) for _, error in errors):
+            raise AnalyzeTimeoutError("情緒分析暫時無法完成，請稍後再試。")
+        raise AnalyzeError("情緒分析暫時無法完成，請稍後再試。")
+
+    if errors:
+        successful_label, successful_result = results[0]
+        failed_details = "；".join(f"{label}失敗：{error}" for label, error in errors)
+        logger.warning(
+            "情緒分析採用單一模型備援：成功=%s；失敗=%s",
+            successful_label,
+            failed_details,
+        )
+        fallback_result = dict(successful_result)
+        fallback_result["summary"] = successful_result.get("summary", "")
+        return fallback_result
+
+    logger.info("GoEmotions 與 Muse 情緒分析皆成功。")
+    combined = average_results([result for _, result in results])
+    combined["summary"] = (
+        f"{results[0][1].get('summary', '')} | "
+        f"{results[1][1].get('summary', '')}"
+    )
+    return combined
+
+
 def normalize_emotion_result(result: Dict[str, Any]) -> Dict[str, Any]:
     """確保提取出的 Ekman 與 VAD 數據格式符合規範與預設值"""
     ekman = result.get("ekman", {})
     vad = result.get("vad", {})
+    emotion_names = ("happiness", "sadness", "anger", "fear", "disgust", "surprise")
+    if not isinstance(ekman, dict) or not isinstance(vad, dict):
+        raise AnalyzeError("模型回傳的情緒分析格式不正確。")
+
+    normalized_ekman: Dict[str, float] = {}
+    for emotion in emotion_names:
+        try:
+            score = float(ekman[emotion])
+        except (KeyError, TypeError, ValueError) as error:
+            raise AnalyzeError(f"模型回傳缺少有效的 {emotion} 分數。") from error
+        if not math.isfinite(score) or not 0 <= score <= 100:
+            raise AnalyzeError(f"模型回傳的 {emotion} 分數超出 0 到 100 範圍。")
+        normalized_ekman[emotion] = score
+
+    positive = float(ekman.get("happiness", 0))
+    negative = sum(
+        float(ekman.get(emotion, 0))
+        for emotion in ("sadness", "anger", "fear", "disgust")
+    )
+    polarity_total = positive + negative
+    derived_valence = 50.0 if polarity_total == 0 else 50 + 50 * (positive - negative) / polarity_total
 
     return {
-        "ekman": {
-            "happiness": float(ekman.get("happiness", 0)),
-            "sadness": float(ekman.get("sadness", 0)),
-            "anger": float(ekman.get("anger", 0)),
-            "fear": float(ekman.get("fear", 0)),
-            "disgust": float(ekman.get("disgust", 0)),
-            "surprise": float(ekman.get("surprise", 0)),
-        },
+        "ekman": normalized_ekman,
         "vad": {
+            "valence": float(vad.get("valence", derived_valence)),
             "arousal": float(vad.get("arousal", 50)),
             "dominance": float(vad.get("dominance", 50)),
         },
@@ -284,6 +514,7 @@ def average_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     # 3. 計算 VAD 平均值（符合 prompt 的整數要求）
     avg_vad = {
+        "valence": round(sum(item["vad"]["valence"] for item in normalized_results) / len(normalized_results), 1),
         "arousal": int(round(sum(item["vad"]["arousal"] for item in normalized_results) / len(normalized_results))),
         "dominance": int(round(sum(item["vad"]["dominance"] for item in normalized_results) / len(normalized_results))),
     }
@@ -422,7 +653,16 @@ def analyze_with_available_ai(
     model_b: str = "google/gemini-2.0-flash-lite-preview-02-05:free",
     on_retry: Optional[Callable[[str], None]] = None,
 ) -> Dict[str, Any]:
-    """根據 .env 中是否同時存在兩組 AI 設定，自動決定使用單 AI 或雙 AI 分析。"""
+    """使用主 .env 的模型；僅在明確設定 SECONDARY_* 時才併用備援模型。"""
+    model_a = _get_first_env(
+        "HF_MODEL_NAME_GEMINI",
+        "HF_MODEL_NAME_2",
+        "HF_MODEL_NAME_SamLowe",
+        "LLM_MODEL",
+        default=model_a,
+    ) or model_a
+    model_b = _get_first_env("SECONDARY_HF_MODEL_NAME", default=model_b) or model_b
+
     primary_ready = _has_provider_config("primary")
     secondary_ready = _has_provider_config("secondary")
 

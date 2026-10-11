@@ -1,7 +1,7 @@
 // services/aiService.js
 // 負責跟 NVIDIA 與 Hugging Face API 溝通，把 AI 模型呼叫細節封裝在這裡
 const axios = require('axios')
-
+const deadUntil = {}
 /**
  * 呼叫 HuggingFace 模型
  * @param {Array} messages - 對話陣列 [{role, content}, ...]
@@ -47,6 +47,13 @@ exports.callAI = async (messages, systemPrompt = null) => {
     // 定義模型候選清單：優先使用 NVIDIA 服務，再回落到 Hugging Face
     const models = [
         {
+            name: process.env.NV_DEEPSEEK,
+            label: 'NVIDIA integrate',
+            source: 'nvidia',
+            url: process.env.NVIDIA_DSURL,
+            apiKey: process.env.NV_DEEPSEEK_KEY
+        },
+        {
             name: process.env.NV_GEMINI,
             label: 'NVIDIA Gemma',
             source: 'nvidia',
@@ -60,13 +67,13 @@ exports.callAI = async (messages, systemPrompt = null) => {
             url: process.env.NV_MSURL,
             apiKey: process.env.NV_MINIMAX_KEY
         },
-        {
-            name: process.env.NV_DEEPSEEK,
-            label: 'NVIDIA integrate',
-            source: 'nvidia',
-            url: process.env.NVIDIA_DSURL,
-            apiKey: process.env.NV_DEEPSEEK_KEY
-        },
+        // {
+        //     name: process.env.NV_DEEPSEEK,
+        //     label: 'NVIDIA integrate',
+        //     source: 'nvidia',
+        //     url: process.env.NVIDIA_DSURL,
+        //     apiKey: process.env.NV_DEEPSEEK_KEY
+        // },
         {
             name: process.env.HF_MODEL_NAME_GEMINI,
             label: 'HuggingFace Gemini',
@@ -93,7 +100,9 @@ exports.callAI = async (messages, systemPrompt = null) => {
 
     let lastError = null
 
-    for (const model of models) {
+    const alive = models.filter(m=> !(deadUntil[m.label] && deadUntil[m.label] > Date.now()))
+    const candidates = alive.length ? alive : models
+    for (const model of candidates) {
         const apiUrl = buildUrl(model)
         if (!apiUrl) {
             console.log(`跳過 ${model.label}：缺少 API URL`)
@@ -129,16 +138,21 @@ exports.callAI = async (messages, systemPrompt = null) => {
             let aiAnswer = message.content || ''
 
             // 有些模型會把內容放在 reasoning_content
-            if (!aiAnswer && message.reasoning_content) {
-                aiAnswer = message.reasoning_content
-            }
+            // if (!aiAnswer && message.reasoning_content) {
+            //     aiAnswer = message.reasoning_content
+            // }
 
             // 過濾 <think> 標籤（DeepSeek 等模型會產生）
             aiAnswer = aiAnswer.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
 
             // 最後防呆
+            // if (!aiAnswer) {
+            //     aiAnswer = '主人，我剛才發呆了一下，沒聽清楚呢！喵～'
+            // }
             if (!aiAnswer) {
-                aiAnswer = '主人，我剛才發呆了一下，沒聽清楚呢！喵～'
+                console.log(`${model.label} 沒有正式回覆(finish_reason: ${choice.finish_reason}),下一個模型`)
+                lastError = new Error('模型沒有產生正式回覆')
+                continue
             }
 
             console.log(`${model.label} 成功回覆`)
@@ -147,6 +161,13 @@ exports.callAI = async (messages, systemPrompt = null) => {
         } catch (error) {
             console.error(`${model.label} 失敗:`, error.message)
             lastError = error
+            const st = error.response && error.response.status
+            if (st === 401 || st === 403 || st === 404 || st === 410){
+                deadUntil[model.label] = Date.now() + 10 * 60 * 1000
+            } else if (error.code === 'ECONNABORTED'){
+                deadUntil[model.label] = Date.now() + 2 * 60 * 1000
+            }
+
 
             // 如果是網路錯誤或超時，繼續嘗試下一個模型
             if (error.code === 'ECONNABORTED' || error.code === 'ENOTFOUND') {
