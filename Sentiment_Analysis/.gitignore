@@ -1,3 +1,7 @@
-# .venv
+# .venv and python sentiment analysis .env
 .venv/
 venv/
+.env
+src/.env
+
+
