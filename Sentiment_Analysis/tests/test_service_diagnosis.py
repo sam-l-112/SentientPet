@@ -61,6 +61,15 @@ class TestFlaskApp(unittest.TestCase):
         """Test /analyze with empty text field"""
         response = self.client.post('/analyze', json={'text': '   '})
         self.assertIn(response.status_code, [400, 422])
+
+    @patch('main.analyze_with_configured_models', side_effect=RuntimeError('internal detail'))
+    def test_unexpected_analyze_error_uses_traditional_chinese_message(self, _mock_analyzer):
+        response = self.client.post('/analyze', json={'text': '測試'})
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(data['error'], '情緒分析服務發生錯誤，請稍後再試。')
+        self.assertNotIn('internal detail', data['error'])
     
     def test_analyze_response_format(self):
         """Test response format is JSON"""

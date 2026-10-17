@@ -85,6 +85,7 @@ def _build_client(provider: str = "primary") -> openai.OpenAI:
 SYSTEM_PROMPT = """
 你是一個情緒分析器。你必須「只輸出純 JSON」，不得輸出任何其他文字、markdown、說明、前後綴。
 輸出 JSON 必須能被 json.loads 直接解析。
+所有自然語言內容（尤其是 summary）都必須使用台灣繁體中文（zh-TW），避免簡體中文或中國大陸用語。
 
 輸出格式固定如下（不要新增欄位、不要改欄位名、不要輸出 null）：
 {
@@ -102,7 +103,7 @@ SYSTEM_PROMPT = """
     "dominance": 0..100（整數）
   },
   "context_shift": "stable|up|down|mixed",
-  "summary": "一句話中文解讀"
+  "summary": "一句話以台灣繁體中文解讀"
 }
 """.strip()
 
@@ -291,6 +292,8 @@ def analyze_message(
     model: str = "meta-llama/llama-3.3-70b-instruct:free",
     on_retry: Optional[Callable[[str], None]] = None,
     provider: str = "primary",
+    max_attempts: int = 2,
+    max_tokens: int = 1500,
 ) -> Dict[str, Any]:
     """
     呼叫 OpenRouter 進行情緒分析，回傳 dict（已解析 JSON）。
@@ -330,13 +333,17 @@ def analyze_message(
     }
 
     last_err: Optional[Exception] = None
-    for attempt in range(2):
+    # for attempt in range(2):
+    for attempt in range(max_attempts):
         try:
             resp = client.chat.completions.create(
                 model=model,
                 messages=messages,
                 extra_headers=extra_headers,
-                timeout=45.0,
+                # timeout=45.0,
+                timeout=25.0,
+                max_tokens=max_tokens,
+		extra_body={"reasoning_effort": "none", "response_format": {"type": "json_object"}},
             )
             content = (resp.choices[0].message.content or "").strip()
             if not content:
@@ -351,7 +358,8 @@ def analyze_message(
         except openai.APITimeoutError as e:
             # 明確捕捉 API 超時錯誤
             last_err = e
-            if attempt == 0:
+            # if attempt == 0:
+            if attempt < max_attempts - 1:
                 if on_retry:
                     try:
                         on_retry("分析中，請稍候...")
@@ -379,7 +387,8 @@ def analyze_message(
                     "504",
                 ]
             )
-            if attempt == 0 and retryable:
+            # if attempt == 0 and retryable:
+            if attempt < max_attempts - 1 and retryable:
                 if on_retry:
                     try:
                         on_retry("分析中，請稍候...")
@@ -396,21 +405,15 @@ def analyze_with_configured_models(
     *,
     text: str,
 ) -> Dict[str, Any]:
-    """Compare the configured GoEmotions classifier with the configured chat model."""
+    """Compare the DiffusionGemma fallback model with the configured Muse model."""
     chat_model = _get_first_env("HF_MODEL_NAME_GEMINI")
     if not chat_model:
-        raise AnalyzeError("未設定輔助情緒分析模型（HF_MODEL_NAME_GEMINI）。")
+        raise AnalyzeError("未設定 Muse 輔助情緒分析模型（HF_MODEL_NAME_GEMINI）。")
     if not _get_first_env("HF_TOKEN"):
-        raise AnalyzeError("未設定輔助情緒分析服務 token（HF_TOKEN）。")
+        raise AnalyzeError("未設定 Muse 輔助情緒分析服務 token（HF_TOKEN）。")
     if not _get_first_env("HF_MODEL_URL"):
-        raise AnalyzeError("未設定輔助情緒分析 API URL（HF_MODEL_URL）。")
-    if not _get_first_env("HF_TOKEN_2"):
-        raise AnalyzeError("未設定主要 GoEmotions 模型 token（HF_TOKEN_2）。")
-    if not _get_first_env("HF_MODEL_URL_2"):
-        raise AnalyzeError("未設定主要 GoEmotions 模型 API URL（HF_MODEL_URL_2）。")
-
+        raise AnalyzeError("未設定 Muse 輔助情緒分析 API URL（HF_MODEL_URL）。")
     with ThreadPoolExecutor(max_workers=2) as executor:
-        classifier_future = executor.submit(analyze_with_hf_emotion_classifier, text)
         chat_future = executor.submit(
             analyze_message,
             text=text,
@@ -418,17 +421,19 @@ def analyze_with_configured_models(
             typing={},
             model=chat_model,
             provider="primary",
+            max_attempts=1,
         )
 
         results: List[tuple[str, Dict[str, Any]]] = []
-        errors: List[tuple[str, AnalyzeError]] = []
+        errors: List[tuple[str, Exception]] = []
         for label, future in (
-            ("GoEmotions 主模型", classifier_future),
             ("Muse 輔助模型", chat_future),
         ):
             try:
-                results.append((label, future.result()))
-            except AnalyzeError as error:
+                result = future.result()
+                normalize_emotion_result(result)  # 格式不對就當作這個模型失敗
+                results.append((label, result))
+            except Exception as error:
                 errors.append((label, error))
 
     if not results:
@@ -450,7 +455,10 @@ def analyze_with_configured_models(
         fallback_result["summary"] = successful_result.get("summary", "")
         return fallback_result
 
-    logger.info("GoEmotions 與 Muse 情緒分析皆成功。")
+    if len(results) == 1:
+        return results[0][1]
+
+    logger.info("DiffusionGemma 與 Muse 情緒分析皆成功。")
     combined = average_results([result for _, result in results])
     combined["summary"] = (
         f"{results[0][1].get('summary', '')} | "

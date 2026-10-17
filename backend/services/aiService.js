@@ -44,29 +44,48 @@ exports.callAI = async (messages, systemPrompt = null) => {
         ...messages
     ]
 
-    // 定義模型候選清單：優先使用 NVIDIA 服務，再回落到 Hugging Face
+    // 定義模型候選清單：優先使用 OLLAMA本地模型服務，接著 NVIDIA 服務，再回落到 Hugging Face
     const models = [
+	{
+            name: process.env.OLLAMA_MODEL,
+            label: 'Local Gemma4',
+            source: 'ollama',
+            url: process.env.OLLAMA_BASE_URL ? `${process.env.OLLAMA_BASE_URL}/v1` : null,
+            apiKey: 'ollama',
+            timeoutMs: 20000,
+            extraBody: { reasoning_effort: 'none' }
+        },
         {
             name: process.env.NV_DEEPSEEK,
             label: 'NVIDIA integrate',
             source: 'nvidia',
             url: process.env.NVIDIA_DSURL,
-            apiKey: process.env.NV_DEEPSEEK_KEY
-        },
-        {
-            name: process.env.NV_GEMINI,
-            label: 'NVIDIA Gemma',
-            source: 'nvidia',
-            url: process.env.NV_GSURL,
-            apiKey: process.env.NV_GEMINI_KEY
+            apiKey: process.env.NV_DEEPSEEK_KEY,
+            timeoutMs: 10000
         },
         {
             name: process.env.NV_MINIMAX,
             label: 'NVIDIA muse-glimmer',
             source: 'nvidia',
             url: process.env.NV_MSURL,
-            apiKey: process.env.NV_MINIMAX_KEY
+            apiKey: process.env.NV_MINIMAX_KEY,
+            timeoutMs: 15000
         },
+        {
+            name: process.env.NV_GEMINI,
+            label: 'NVIDIA Gemma',
+            source: 'nvidia',
+            url: process.env.NV_GSURL,
+            apiKey: process.env.NV_GEMINI_KEY,
+            timeoutMs: 12000
+        },
+        // {
+        //     name: process.env.NV_MINIMAX,
+        //     label: 'NVIDIA muse-glimmer',
+        //     source: 'nvidia',
+        //     url: process.env.NV_MSURL,
+        //     apiKey: process.env.NV_MINIMAX_KEY
+        // },
         // {
         //     name: process.env.NV_DEEPSEEK,
         //     label: 'NVIDIA integrate',
@@ -79,14 +98,16 @@ exports.callAI = async (messages, systemPrompt = null) => {
             label: 'HuggingFace Gemini',
             source: 'huggingface',
             url: process.env.HF_MODEL_URL,
-            apiKey: process.env.HF_TOKEN
+            apiKey: process.env.HF_TOKEN,
+            timeoutMs: 12000
         },
         {
             name: process.env.HF_MODEL_NAME_QWEN,
             label: 'HuggingFace Qwen',
             source: 'huggingface',
             url: process.env.HF_MODEL_URL,
-            apiKey: process.env.HF_TOKEN
+            apiKey: process.env.HF_TOKEN,
+            timeoutMs: 12000
         }
     ].filter(model => model.name)
 
@@ -109,6 +130,7 @@ exports.callAI = async (messages, systemPrompt = null) => {
             continue
         }
 
+        const startedAt = Date.now()
         try {
             console.log(`嘗試使用 ${model.label} 模型...`)
 
@@ -117,23 +139,30 @@ exports.callAI = async (messages, systemPrompt = null) => {
                 {
                     model:       model.name,
                     messages:    fullMessages,
-                    max_tokens:  500,
-                    temperature: 0.7
+                    // max_tokens:  500,
+                    max_tokens:  model.maxTokens || 500,
+                    temperature: 0.7,
+		    ...(model.extraBody || {})
                 },
                 {
                     headers: {
                         'Authorization': `Bearer ${model.apiKey}`,
                         'Content-Type':  'application/json'
                     },
-                    timeout: 30000 // 30 秒超時
+                    timeout: model.timeoutMs || 12000
                 }
             )
-
-            console.log(`${model.label} 回傳成功:`, JSON.stringify(response.data, null, 2))
 
             // 安全取值
             const choice  = response.data?.choices?.[0] || {}
             const message = choice.message || {}
+
+            console.info(`${model.label} 回應狀態:`, JSON.stringify({
+                elapsedMs: Date.now() - startedAt,
+                finishReason: choice.finish_reason || null,
+                completionTokens: response.data?.usage?.completion_tokens ?? null,
+                hasContent: typeof message.content === 'string' && message.content.trim().length > 0
+            }))
 
             let aiAnswer = message.content || ''
 
@@ -152,6 +181,9 @@ exports.callAI = async (messages, systemPrompt = null) => {
             if (!aiAnswer) {
                 console.log(`${model.label} 沒有正式回覆(finish_reason: ${choice.finish_reason}),下一個模型`)
                 lastError = new Error('模型沒有產生正式回覆')
+                if (choice.finish_reason === 'length') {
+                    deadUntil[model.label] = Date.now() + 2 * 60 * 1000
+                }
                 continue
             }
 
@@ -159,10 +191,16 @@ exports.callAI = async (messages, systemPrompt = null) => {
             return aiAnswer
 
         } catch (error) {
-            console.error(`${model.label} 失敗:`, error.message)
+            const elapsedMs = Date.now() - startedAt
+            console.error(`${model.label} 請求失敗:`, JSON.stringify({
+                elapsedMs,
+                code: error.code || null,
+                status: error.response?.status || null,
+                message: error.message
+            }))
             lastError = error
             const st = error.response && error.response.status
-            if (st === 401 || st === 403 || st === 404 || st === 410){
+            if (st === 401 || st === 402 || st === 403 || st === 404 || st === 410){
                 deadUntil[model.label] = Date.now() + 10 * 60 * 1000
             } else if (error.code === 'ECONNABORTED'){
                 deadUntil[model.label] = Date.now() + 2 * 60 * 1000
@@ -182,7 +220,9 @@ exports.callAI = async (messages, systemPrompt = null) => {
             }
 
             // 其他錯誤直接拋出
-            throw error
+            // throw error
+            // 直接換下一個模型
+            continue
         }
     }
 

@@ -59,7 +59,7 @@ def analyze():
     except Exception as e:
         # 未預期的內部錯誤，將錯誤印出到 journalctl
         app.logger.exception("情緒分析服務發生未預期錯誤：%s", e)
-        return jsonify({"success": False, "error": "Internal Error"}), 500
+        return jsonify({"success": False, "error": "情緒分析服務發生錯誤，請稍後再試。"}), 500
 
 
 PAUSE_THRESHOLD_SEC = 2.0

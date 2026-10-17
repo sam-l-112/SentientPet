@@ -1,20 +1,28 @@
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from analyzer import (
     AnalyzeError,
     AnalyzeTimeoutError,
+    SYSTEM_PROMPT,
     _has_provider_config,
     _go_emotions_to_analysis,
     _parse_go_emotions_response,
+    analyze_message,
     analyze_with_configured_models,
     analyze_with_hf_emotion_classifier,
     analyze_with_available_ai,
     analyze_with_multiple_ai,
     average_results,
 )
+
+
+def test_model_prompt_requires_taiwan_traditional_chinese():
+    assert "台灣繁體中文（zh-TW）" in SYSTEM_PROMPT
+    assert "避免簡體中文或中國大陸用語" in SYSTEM_PROMPT
 
 
 def test_average_results_supports_multiple_models():
@@ -74,6 +82,47 @@ def test_analyze_with_multiple_ai_uses_all_available_models(monkeypatch):
     assert len(calls) == 3
     assert result["dominant_emotion"] == "happiness"
     assert result["ekman"]["happiness"] == 10.0
+
+
+def test_analyze_message_passes_configured_max_tokens_to_api(monkeypatch):
+    api_calls = []
+
+    def fake_create(**kwargs):
+        api_calls.append(kwargs)
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content='{"summary":"測試"}',
+                    )
+                )
+            ]
+        )
+
+    fake_client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(create=fake_create),
+        )
+    )
+    monkeypatch.setattr("analyzer._build_client", lambda provider: fake_client)
+
+    analyze_message(
+        text="測試",
+        history_last10=[],
+        typing={},
+        model="test-model",
+        max_attempts=1,
+    )
+    analyze_message(
+        text="測試",
+        history_last10=[],
+        typing={},
+        model="test-model",
+        max_attempts=1,
+        max_tokens=400,
+    )
+
+    assert [call["max_tokens"] for call in api_calls] == [1500, 400]
 
 
 def test_available_ai_uses_root_model_and_ignores_legacy_classifier_config(monkeypatch):
@@ -181,22 +230,19 @@ def test_hf_classifier_requires_hf_token(monkeypatch):
         raise AssertionError("Expected a missing-token error")
 
 
-def test_configured_models_compare_hf_classifier_and_chat_model(monkeypatch):
-    monkeypatch.setenv("HF_TOKEN_2", "hf-primary-token")
-    monkeypatch.setenv(
-        "HF_MODEL_URL_2",
-        "https://router.huggingface.co/hf-inference/models/SamLowe/roberta-base-go_emotions",
-    )
-    monkeypatch.setenv("HF_MODEL_NAME_SamLowe", "SamLowe/roberta-base-go_emotions")
+def test_configured_models_compare_diffusiongemma_and_muse(monkeypatch):
     monkeypatch.setenv("HF_TOKEN", "nvidia-chat-token")
     monkeypatch.setenv("HF_MODEL_URL", "https://integrate.api.nvidia.com/v1")
     monkeypatch.setenv("HF_MODEL_NAME_GEMINI", "meta/muse-glimmer-30b")
+    monkeypatch.setenv("SECONDARY_HF_TOKEN", "secondary-token")
+    monkeypatch.setenv("SECONDARY_HF_MODEL_URL", "https://router.huggingface.co/v1")
+    monkeypatch.setenv("SECONDARY_HF_MODEL_NAME", "google/diffusiongemma-26b-a4b-it")
 
-    classifier_result = {
+    diffusiongemma_result = {
         "ekman": {"happiness": 80, "sadness": 0, "anger": 0, "fear": 0, "disgust": 0, "surprise": 0},
         "vad": {"valence": 100, "arousal": 70, "dominance": 65},
         "context_shift": "up",
-        "summary": "GoEmotions",
+        "summary": "DiffusionGemma",
     }
     chat_result = {
         "ekman": {"happiness": 40, "sadness": 20, "anger": 0, "fear": 0, "disgust": 0, "surprise": 0},
@@ -204,70 +250,62 @@ def test_configured_models_compare_hf_classifier_and_chat_model(monkeypatch):
         "context_shift": "stable",
         "summary": "Muse",
     }
-    classifier_calls = []
-    chat_calls = []
+    model_calls = []
 
-    def fake_classifier(text):
-        classifier_calls.append(text)
-        return classifier_result
-
-    def fake_chat(**kwargs):
-        chat_calls.append(kwargs)
+    def fake_analyze_message(**kwargs):
+        model_calls.append(kwargs)
+        if kwargs["provider"] == "secondary":
+            return diffusiongemma_result
         return chat_result
 
-    monkeypatch.setattr("analyzer.analyze_with_hf_emotion_classifier", fake_classifier)
-    monkeypatch.setattr("analyzer.analyze_message", fake_chat)
+    monkeypatch.setattr("analyzer.analyze_message", fake_analyze_message)
 
-    result = analyze_with_configured_models(
-        text="分析這段文字",
-    )
+    result = analyze_with_configured_models(text="分析這段文字")
 
-    assert classifier_calls == ["分析這段文字"]
-    assert len(chat_calls) == 1
-    assert chat_calls[0]["model"] == "meta/muse-glimmer-30b"
-    assert chat_calls[0]["provider"] == "primary"
-    assert chat_calls[0]["text"] == "分析這段文字"
-    assert chat_calls[0]["history_last10"] == []
-    assert chat_calls[0]["typing"] == {}
+    assert len(model_calls) == 2
+    assert {
+        (call["model"], call["provider"], call["max_attempts"], call.get("max_tokens", 1500))
+        for call in model_calls
+    } == {
+        ("google/diffusiongemma-26b-a4b-it", "secondary", 1, 400),
+        ("meta/muse-glimmer-30b", "primary", 1, 1500),
+    }
+    assert all(call["text"] == "分析這段文字" for call in model_calls)
+    assert all(call["history_last10"] == [] for call in model_calls)
+    assert all(call["typing"] == {} for call in model_calls)
     assert result["ekman"]["happiness"] == 60.0
     assert result["vad"]["valence"] == 83.3
-    assert result["summary"] == "GoEmotions | Muse"
+    assert result["summary"] == "DiffusionGemma | Muse"
     assert "model_status" not in result
 
 
-def test_configured_models_log_classifier_failure_and_return_chat_result_only(monkeypatch, caplog):
-    monkeypatch.setenv("HF_TOKEN_2", "hf-primary-token")
-    monkeypatch.setenv("HF_MODEL_URL_2", "https://router.huggingface.co/hf-inference/models/model")
+def test_configured_models_log_diffusiongemma_failure_and_return_muse_result(monkeypatch, caplog):
     monkeypatch.setenv("HF_TOKEN", "nvidia-chat-token")
     monkeypatch.setenv("HF_MODEL_URL", "https://integrate.api.nvidia.com/v1")
     monkeypatch.setenv("HF_MODEL_NAME_GEMINI", "meta/muse-glimmer-30b")
 
-    monkeypatch.setattr(
-        "analyzer.analyze_with_hf_emotion_classifier",
-        lambda text: (_ for _ in ()).throw(AnalyzeError("classifier unavailable")),
-    )
-    monkeypatch.setattr(
-        "analyzer.analyze_message",
-        lambda **kwargs: {
+    def fake_analyze_message(**kwargs):
+        if kwargs["provider"] == "secondary":
+            raise AnalyzeError("DiffusionGemma unavailable")
+        return {
             "ekman": {"happiness": 50, "sadness": 0, "anger": 0, "fear": 0, "disgust": 0, "surprise": 0},
             "vad": {"arousal": 50, "dominance": 50},
             "context_shift": "stable",
             "summary": "Muse",
-        },
-    )
+        }
+
+    monkeypatch.setattr("analyzer.analyze_message", fake_analyze_message)
 
     result = analyze_with_configured_models(text="test")
 
     assert result["ekman"]["happiness"] == 50
     assert result["summary"] == "Muse"
     assert "model_status" not in result
-    assert "classifier unavailable" in caplog.text
-    assert "GoEmotions 主模型" in caplog.text
+    assert "DiffusionGemma unavailable" in caplog.text
+    assert "DiffusionGemma 備援模型" in caplog.text
 
 
-def test_configured_models_log_chat_failure_and_return_classifier_result_only(monkeypatch, caplog):
-    monkeypatch.setenv("HF_TOKEN_2", "hf-primary-token")
-    monkeypatch.setenv("HF_MODEL_URL_2", "https://router.huggingface.co/hf-inference/models/model")
+def test_configured_models_log_muse_failure_and_return_diffusiongemma_result(monkeypatch, caplog):
     monkeypatch.setenv("HF_TOKEN", "nvidia-chat-token")
     monkeypatch.setenv("HF_MODEL_URL", "https://integrate.api.nvidia.com/v1")
     monkeypatch.setenv("HF_MODEL_NAME_GEMINI", "meta/muse-glimmer-30b")
@@ -275,65 +313,59 @@ def test_configured_models_log_chat_failure_and_return_classifier_result_only(mo
         "ekman": {"happiness": 80, "sadness": 0, "anger": 0, "fear": 0, "disgust": 0, "surprise": 0},
         "vad": {"valence": 100, "arousal": 70, "dominance": 65},
         "context_shift": "up",
-        "summary": "GoEmotions",
+        "summary": "DiffusionGemma",
     }
-    monkeypatch.setattr("analyzer.analyze_with_hf_emotion_classifier", lambda text: classifier_result)
-    monkeypatch.setattr(
-        "analyzer.analyze_message",
-        lambda **kwargs: (_ for _ in ()).throw(AnalyzeError("Muse unavailable")),
-    )
+
+    def fake_analyze_message(**kwargs):
+        if kwargs["provider"] == "primary":
+            raise AnalyzeError("Muse unavailable")
+        return classifier_result
+
+    monkeypatch.setattr("analyzer.analyze_message", fake_analyze_message)
 
     result = analyze_with_configured_models(text="test")
 
     assert result["ekman"]["happiness"] == 80
-    assert result["summary"] == "GoEmotions"
+    assert result["summary"] == "DiffusionGemma"
     assert "model_status" not in result
     assert "Muse unavailable" in caplog.text
     assert "Muse 輔助模型" in caplog.text
 
 
 def test_configured_models_log_timeout_and_keep_it_out_of_fallback_result(monkeypatch, caplog):
-    monkeypatch.setenv("HF_TOKEN_2", "hf-primary-token")
-    monkeypatch.setenv("HF_MODEL_URL_2", "https://router.huggingface.co/hf-inference/models/model")
     monkeypatch.setenv("HF_TOKEN", "nvidia-chat-token")
     monkeypatch.setenv("HF_MODEL_URL", "https://integrate.api.nvidia.com/v1")
     monkeypatch.setenv("HF_MODEL_NAME_GEMINI", "meta/muse-glimmer-30b")
 
-    monkeypatch.setattr(
-        "analyzer.analyze_with_hf_emotion_classifier",
-        lambda text: (_ for _ in ()).throw(AnalyzeTimeoutError("classifier timed out")),
-    )
-    monkeypatch.setattr(
-        "analyzer.analyze_message",
-        lambda **kwargs: {
+    def fake_analyze_message(**kwargs):
+        if kwargs["provider"] == "secondary":
+            raise AnalyzeTimeoutError("DiffusionGemma timed out")
+        return {
             "ekman": {"happiness": 50, "sadness": 0, "anger": 0, "fear": 0, "disgust": 0, "surprise": 0},
             "vad": {"arousal": 50, "dominance": 50},
             "context_shift": "stable",
             "summary": "Muse",
-        },
-    )
+        }
+
+    monkeypatch.setattr("analyzer.analyze_message", fake_analyze_message)
 
     result = analyze_with_configured_models(text="test")
 
     assert result["summary"] == "Muse"
     assert "model_status" not in result
-    assert "classifier timed out" in caplog.text
+    assert "DiffusionGemma timed out" in caplog.text
 
 
 def test_configured_models_do_not_return_model_errors_when_both_fail(monkeypatch, caplog):
-    monkeypatch.setenv("HF_TOKEN_2", "hf-primary-token")
-    monkeypatch.setenv("HF_MODEL_URL_2", "https://router.huggingface.co/hf-inference/models/model")
     monkeypatch.setenv("HF_TOKEN", "nvidia-chat-token")
     monkeypatch.setenv("HF_MODEL_URL", "https://integrate.api.nvidia.com/v1")
     monkeypatch.setenv("HF_MODEL_NAME_GEMINI", "meta/muse-glimmer-30b")
-    monkeypatch.setattr(
-        "analyzer.analyze_with_hf_emotion_classifier",
-        lambda text: (_ for _ in ()).throw(AnalyzeError("classifier private detail")),
-    )
-    monkeypatch.setattr(
-        "analyzer.analyze_message",
-        lambda **kwargs: (_ for _ in ()).throw(AnalyzeError("Muse private detail")),
-    )
+    def fake_analyze_message(**kwargs):
+        if kwargs["provider"] == "secondary":
+            raise AnalyzeError("DiffusionGemma private detail")
+        raise AnalyzeError("Muse private detail")
+
+    monkeypatch.setattr("analyzer.analyze_message", fake_analyze_message)
 
     try:
         analyze_with_configured_models(text="test")
@@ -343,7 +375,7 @@ def test_configured_models_do_not_return_model_errors_when_both_fail(monkeypatch
     else:
         raise AssertionError("Expected an error when both models fail")
 
-    assert "classifier private detail" in caplog.text
+    assert "DiffusionGemma private detail" in caplog.text
     assert "Muse private detail" in caplog.text
 
 
