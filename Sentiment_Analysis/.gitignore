@@ -4,4 +4,9 @@ venv/
 .env
 src/.env
 
+# anallyzer.py.bak
+src/analyzer.py.bak
+src/analyzer.py.bak2
 
+# pycache/
+pycache/

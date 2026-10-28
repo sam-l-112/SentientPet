@@ -114,3 +114,7 @@ node_modules/
 
 #.env file
 .env
+
+# .bak file
+services/aiService.js.bak
+services/saService.js.bak
