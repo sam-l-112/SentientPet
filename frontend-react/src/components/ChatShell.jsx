@@ -71,34 +71,46 @@ function BotMark() {
   );
 }
 
-// 回傳每則訊息對應的 history 索引（沒有對應則為 null）。
-// - 以 mes_id 對應：沒做過情緒分析的訊息（例如「哈囉」）不會讓後面錯位
-// - 舊資料可能存成 AI 回覆的 mes_id → 對應到它前一則使用者訊息
-// - 雙方都沒有 mes_id（後端尚未更新）時，退回依序對應
+// 回傳每則訊息對應的 history 索引（沒有對應則為 null）。逐筆情緒分析依序嘗試：
+//   1. mes_id：對到同 ID 的使用者訊息；舊資料若存成 AI 回覆的 ID → 接到它前一則使用者訊息
+//   2. 時間：analyzed_at 之前（含 2 秒誤差）最新的一則使用者訊息
+//      （分析一定在訊息存入之後；後端沒回傳 mes_id 時也能對上）
+//   3. 都沒有時，從最新往回依序對應（最新的分析配最新的訊息）
+// 沒做過情緒分析的訊息（例如「哈囉」）保持 null，不會讓其他訊息錯位。
+const TIME_SLACK_MS = 2000;
 export function linkHistory(messages, history) {
   const out = messages.map(() => null);
-  const hasIds = history.some((h) => h.mesId != null) && messages.some((m) => m.mesId != null);
-  if (!hasIds) {
-    let ui = 0;
-    messages.forEach((m, i) => {
-      if (m.role !== "user") return;
-      if (ui < history.length) out[i] = ui;
-      ui++;
-    });
-    return out;
-  }
+
   const idToMsg = new Map();
+  const users = []; // [msgIndex, ts]
   let lastUser = null;
   messages.forEach((m, i) => {
-    if (m.role === "user") lastUser = i;
+    if (m.role === "user") { lastUser = i; users.push([i, m.ts ?? null]); }
     if (m.mesId == null) return;
     if (m.role === "user") idToMsg.set(m.mesId, i);
     else if (lastUser != null && !idToMsg.has(m.mesId)) idToMsg.set(m.mesId, lastUser);
   });
+
+  const unlinked = [];
   history.forEach((h, hi) => {
-    const mi = h.mesId != null ? idToMsg.get(h.mesId) : undefined;
+    let mi = h.mesId != null ? idToMsg.get(h.mesId) : undefined;
+    if (mi == null && h.analyzedAt != null) {
+      for (let k = users.length - 1; k >= 0; k--) {
+        const [idx, ts] = users[k];
+        if (ts != null && ts <= h.analyzedAt + TIME_SLACK_MS) { mi = idx; break; }
+      }
+    }
     if (mi != null) out[mi] = hi; // 同一則重複分析時取最新
+    else unlinked.push(hi);
   });
+
+  // 3. 剩下對不到的：從最新往回配給尚未有分析的使用者訊息
+  if (unlinked.length) {
+    const free = users.map(([i]) => i).filter((i) => out[i] == null);
+    for (let k = unlinked.length - 1, f = free.length - 1; k >= 0 && f >= 0; k--, f--) {
+      out[free[f]] = unlinked[k];
+    }
+  }
   return out;
 }
 

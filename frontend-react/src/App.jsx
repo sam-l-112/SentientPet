@@ -27,10 +27,14 @@ import {
   valenceOf, stageOf, formatTime,
 } from "./lib/theme.js";
 
-// mesId：對應的訊息 ID（Emotion_Tracker.mes_id），用來把情緒分析接回正確的使用者訊息
-const mkEntry = (raw, saElapsed, mesId = raw.mes_id ?? null) => {
+const toMs = (v) => { if (v == null) return null; const t = new Date(v).getTime(); return Number.isNaN(t) ? null : t; };
+
+// 把情緒分析接回正確的使用者訊息用：
+//   mesId      ← Emotion_Tracker.mes_id（後端有回傳時最準）
+//   analyzedAt ← Emotion_Tracker.analyzed_at（沒有 mes_id 時用時間對應）
+const mkEntry = (raw, saElapsed, mesId = raw.mes_id ?? null, analyzedAt = toMs(raw.analyzed_at) ?? Date.now()) => {
   const score = raw.valence != null ? raw.valence : valenceOf(raw);
-  return { score, stage: stageOf(score), raw, saElapsed, mesId: mesId != null ? Number(mesId) : null };
+  return { score, stage: stageOf(score), raw, saElapsed, mesId: mesId != null ? Number(mesId) : null, analyzedAt };
 };
 
 let localKeySeq = 0;
@@ -125,6 +129,7 @@ export default function App() {
             mesId: m.mes_id != null ? Number(m.mes_id) : null,
             elapsed: m.role === "assistant" ? m.reply_elapsed ?? null : null,
             time: formatTime(m.created_at ?? m.message_at ?? null),
+            ts: toMs(m.created_at ?? m.message_at),
           })));
         }
 
@@ -132,7 +137,7 @@ export default function App() {
         const emotionData = await API.getEmotionHistory(latest.cs_id);
         if (emotionData.success && emotionData.history?.length > 0) {
           // 用同一套 mkEntry / computeMix，重新整理後混色會依歷史重算
-          setHistory(emotionData.history.map((r) => mkEntry(r, r.sa_elapsed ?? null)));
+          setHistory(emotionData.history.map((r) => mkEntry(r, r.sa_elapsed ?? null, r.mes_id ?? null, toMs(r.analyzed_at))));
         }
       } else {
         // 完全沒有 session，才建新的
@@ -166,7 +171,7 @@ export default function App() {
   async function onSend(text) {
     if (!csId) { console.warn("尚未建立 session"); return; }
     const localKey = ++localKeySeq;
-    setMessages((m) => [...m, { role: "user", content: text, time: formatTime(), mesId: null, localKey }]);
+    setMessages((m) => [...m, { role: "user", content: text, time: formatTime(), ts: Date.now(), mesId: null, localKey }]);
     // 拿到 user_mes_id 後補進這則訊息，讓情緒分析能用 ID 對應
     const attachMesId = (id) => {
       if (id == null) return;
@@ -196,7 +201,7 @@ export default function App() {
       catch { /* opencc 失敗就用原文 */ }
 
       const elapsed = ((Date.now() - sendTime) / 1000).toFixed(1);
-      setMessages((m) => [...m, { role: "bot", content: reply, elapsed, time: formatTime(), mesId: aiData.mes_id ?? null }]);
+      setMessages((m) => [...m, { role: "bot", content: reply, elapsed, time: formatTime(), ts: Date.now(), mesId: aiData.mes_id ?? null }]);
 
       // ── AI 回覆顯示後立刻解鎖 composer ──
       setSending(false);
