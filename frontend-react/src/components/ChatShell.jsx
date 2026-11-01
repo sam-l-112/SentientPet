@@ -1,57 +1,166 @@
-// ChatShell — header + messages + composer。
+// ChatShell — header + messages + composer（Chat v2）。
+//
+// - 置中單欄（760px），AI 回覆有標誌 + 對話框 + 時間 / 回覆秒數
+// - 使用者訊息 hover 顯示「情緒為：XX　時間」；訊息 ↔ 情緒分析以 mes_id 對應（見 linkHistory）
+// - 自動捲到底（ResizeObserver），只有使用者在底部附近時才捲
+// - ref.scrollToUserMessage(i)：i 為 history 索引；給 EmotionPanel 折線圖點擊跳轉 + 高亮
+//
+// 主題色全部走 app.css 的 var(--theme-*)；只有 pill 需要 mixRgb / mono 做混色背景。
 
 import React from "react";
+import { EMOTIONS_META, stageOf } from "../lib/theme.js";
 
-function ChatHeader({ username, onLogout }) {
+const HEART = "M12 21s-7-4.35-9.5-9.06C.5 7 4 3 7.5 3c2 0 3.5 1 4.5 2.5C13 4 14.5 3 16.5 3 20 3 23.5 7 21.5 11.94 19 16.65 12 21 12 21z";
+const LOGOUT = "M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z";
+const STAGE_NAME = { positive: "正面", neutral: "中性", negative: "負面" };
+
+function EmotionPill({ history, analyzing, mixRgb, mono, onClick }) {
+  const last = history.length ? history[history.length - 1] : null;
+  const stage = last ? stageOf(last.score) : "neutral";
+  const style = mixRgb
+    ? (() => {
+        const [r, g, b] = mixRgb;
+        return {
+          background: `linear-gradient(135deg, rgba(255,255,255,.75), rgba(${r},${g},${b},${(0.25 + mono * 0.3).toFixed(2)}))`,
+          borderColor: `rgba(${r},${g},${b},.6)`,
+          boxShadow: `0 2px 12px rgba(${r},${g},${b},.3)`,
+        };
+      })()
+    : undefined;
+  return (
+    <button className="emotion-pill" style={style} onClick={onClick} title="情緒分析">
+      <span>情緒 · {STAGE_NAME[stage]}</span>
+      {analyzing && <span className="emotion-pill-pulse" />}
+    </button>
+  );
+}
+
+function ChatHeader({ username, onLogout, pill }) {
   return (
     <header className="header">
       <div className="header-left">
-        <div className="avatar-ring">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 21s-7-4.35-9.5-9.06C.5 7 4 3 7.5 3c2 0 3.5 1 4.5 2.5C13 4 14.5 3 16.5 3 20 3 23.5 7 21.5 11.94 19 16.65 12 21 12 21z" />
-          </svg>
-        </div>
         <div className="header-info">
           <h1>SentientAI · 心靈陪伴</h1>
-          <div className="status">
-            <span className="status-dot"></span>線上
-          </div>
         </div>
       </div>
       <div className="header-actions">
         <span className="header-username">{username}</span>
-        <button className="btn-logout" onClick={onLogout}>登出</button>
+        <button className="btn-logout-icon" onClick={onLogout} title="登出" aria-label="登出">
+          <svg viewBox="0 0 24 24"><path d={LOGOUT} /></svg>
+        </button>
+        {pill}
       </div>
     </header>
   );
 }
 
-function Bubble({ role, children, elapsed }) {
-  // 把換行轉成段落，讓長文不會黏成一大塊
-  const lines = String(children).split("\n").filter(l => l.trim() !== "");
+function Lines({ text }) {
+  return String(text).split("\n").filter((l) => l.trim() !== "").map((line, i) => (
+    <p key={i}>{line}</p>
+  ));
+}
+
+function BotMark() {
   return (
-    <div className={`row ${role}`}>
-      <div className="mini-avatar">{role === "user" ? "你" : "AI"}</div>
-      <div className="bubble">
-        {lines.map((line, i) => (
-          <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0" }}>{line}</p>
-        ))}
-        {role === "bot" && children.elapsed && (
-          <p className="elapsed-time">⏱ 回覆時間：{children.elapsed} 秒</p>
-        )}
-        {role === "bot" && elapsed && (
-          <p className="elapsed-time">⏱ 回覆時間：{elapsed} 秒</p>
-        )}
+    <div className="bot-head">
+      <div className="bot-mark">
+        <svg viewBox="0 0 24 24"><path d={HEART} /></svg>
       </div>
+      <span className="bot-name">SentientAI</span>
+    </div>
+  );
+}
+
+// 回傳每則訊息對應的 history 索引（沒有對應則為 null）。逐筆情緒分析依序嘗試：
+//   1. mes_id：對到同 ID 的使用者訊息；舊資料若存成 AI 回覆的 ID → 接到它前一則使用者訊息
+//   2. 時間：analyzed_at 之前（含 2 秒誤差）最新的一則使用者訊息
+//      （分析一定在訊息存入之後；後端沒回傳 mes_id 時也能對上）
+//   3. 都沒有時，從最新往回依序對應（最新的分析配最新的訊息）
+// 沒做過情緒分析的訊息（例如「哈囉」）保持 null，不會讓其他訊息錯位。
+const TIME_SLACK_MS = 2000;
+export function linkHistory(messages, history) {
+  const out = messages.map(() => null);
+
+  const idToMsg = new Map();
+  const users = []; // [msgIndex, ts]
+  let lastUser = null;
+  messages.forEach((m, i) => {
+    if (m.role === "user") { lastUser = i; users.push([i, m.ts ?? null]); }
+    if (m.mesId == null) return;
+    if (m.role === "user") idToMsg.set(m.mesId, i);
+    else if (lastUser != null && !idToMsg.has(m.mesId)) idToMsg.set(m.mesId, lastUser);
+  });
+
+  const unlinked = [];
+  history.forEach((h, hi) => {
+    let mi = h.mesId != null ? idToMsg.get(h.mesId) : undefined;
+    if (mi == null && h.analyzedAt != null) {
+      for (let k = users.length - 1; k >= 0; k--) {
+        const [idx, ts] = users[k];
+        if (ts != null && ts <= h.analyzedAt + TIME_SLACK_MS) { mi = idx; break; }
+      }
+    }
+    if (mi != null) out[mi] = hi; // 同一則重複分析時取最新
+    else unlinked.push(hi);
+  });
+
+  // 3. 剩下對不到的：從最新往回配給尚未有分析的使用者訊息
+  if (unlinked.length) {
+    const free = users.map(([i]) => i).filter((i) => out[i] == null);
+    for (let k = unlinked.length - 1, f = free.length - 1; k >= 0 && f >= 0; k--, f--) {
+      out[free[f]] = unlinked[k];
+    }
+  }
+  return out;
+}
+
+function dominantEmotion(raw) {
+  return EMOTIONS_META.reduce(
+    (best, e) => ((raw[e.key] ?? 0) > (raw[best.key] ?? 0) ? e : best),
+    EMOTIONS_META[0]
+  );
+}
+
+function UserMessage({ m, histIdx, entry, pending, flash }) {
+  const dom = entry ? dominantEmotion(entry.raw) : null;
+  return (
+    <div className={`msg-user${flash ? " is-flash" : ""}`} data-hist-idx={histIdx ?? undefined}>
+      <div className="bubble-user"><Lines text={m.content} /></div>
+      <div className="msg-user-meta">
+        {dom && (
+          <span className="meta-emo">
+            <span className="meta-emo-dot" style={{ background: dom.color }} />
+            情緒為：<b style={{ color: dom.color }}>{dom.label}</b>
+          </span>
+        )}
+        {!dom && pending && <span>情緒分析中…</span>}
+        {m.time && <span>{m.time}</span>}
+      </div>
+    </div>
+  );
+}
+
+function BotMessage({ m }) {
+  return (
+    <div className="msg-bot">
+      <BotMark />
+      <div className="bubble-bot"><Lines text={m.content} /></div>
+      {(m.time || m.elapsed) && (
+        <div className="msg-bot-meta">
+          {m.time && <span>{m.time}</span>}
+          {m.time && m.elapsed && <span className="meta-sep" />}
+          {m.elapsed && <span>回覆 {m.elapsed} 秒</span>}
+        </div>
+      )}
     </div>
   );
 }
 
 function Typing() {
   return (
-    <div className="row bot">
-      <div className="mini-avatar">AI</div>
-      <div className="bubble typing-bubble">
+    <div className="msg-bot">
+      <BotMark />
+      <div className="bubble-bot typing-bubble">
         <span className="dot"></span>
         <span className="dot"></span>
         <span className="dot"></span>
@@ -64,9 +173,7 @@ function Welcome() {
   return (
     <div className="welcome">
       <div className="welcome-disc">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 21s-7-4.35-9.5-9.06C.5 7 4 3 7.5 3c2 0 3.5 1 4.5 2.5C13 4 14.5 3 16.5 3 20 3 23.5 7 21.5 11.94 19 16.65 12 21 12 21z" />
-        </svg>
+        <svg viewBox="0 0 24 24"><path d={HEART} /></svg>
       </div>
       <p>說點什麼吧，我在這裡。</p>
     </div>
@@ -77,7 +184,15 @@ function Composer({ onSend, disabled }) {
   const [v, setV] = React.useState("");
   const [listening, setListening] = React.useState(false);
   const recognitionRef = React.useRef(null);
-  
+  const ref = React.useRef(null);
+
+  function autoresize() {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(160, el.scrollHeight) + "px";
+  }
+
   function startVoice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { alert("此瀏覽器不支援語音輸入"); return; }
@@ -87,46 +202,32 @@ function Composer({ onSend, disabled }) {
     rec.onstart = () => setListening(true);
     rec.onend = () => {
       setListening(false);
-      setV((prev) => prev.replace(/\uFEFF.*$/, "").trim());
+      setV((prev) => prev.replace(/﻿.*$/, "").trim());
       setTimeout(autoresize, 0);
     };
     rec.onresult = (e) => {
       let final = "";
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          final += e.results[i][0].transcript;
-        } else {
-          interim += e.results[i][0].transcript;
-        }
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
       }
       setV((prev) => {
-        const base = prev.replace(/\uFEFF.*$/, "");
-        return (base + final + "\uFEFF" + interim).slice(0, 2000);
+        const base = prev.replace(/﻿.*$/, "");
+        return (base + final + "﻿" + interim).slice(0, 2000);
       });
       setTimeout(autoresize, 0);
     };
-    rec.onerror = (e) => { console.log("錯誤:", e.error); setListening(false); }
+    rec.onerror = (e) => { console.log("錯誤:", e.error); setListening(false); };
     recognitionRef.current = rec;
     rec.start();
   }
-  
-  function stopVoice() {
-    recognitionRef.current?.stop();
-  }
 
-  const ref = React.useRef(null);
-
-  function autoresize() {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = Math.min(90, el.scrollHeight) + "px";
-  }
+  function stopVoice() { recognitionRef.current?.stop(); }
 
   function go() {
     const text = v.trim();
-    if (!text) return;
+    if (!text || disabled) return;
     onSend(text);
     setV("");
     setTimeout(autoresize, 0);
@@ -141,15 +242,9 @@ function Composer({ onSend, disabled }) {
           maxLength={2000}
           placeholder="輸入訊息…"
           value={v}
-          onChange={(e) => {
-            setV(e.target.value);
-            autoresize();
-          }}
+          onChange={(e) => { setV(e.target.value); autoresize(); }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              go();
-            }
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); }
           }}
         />
         <button
@@ -162,35 +257,107 @@ function Composer({ onSend, disabled }) {
             <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 17.93V21h-2v2h6v-2h-2v-2.07A8.001 8.001 0 0 0 20 11h-2a6 6 0 0 1-12 0H4a8.001 8.001 0 0 0 7 7.93z" />
           </svg>
         </button>
-
         <button className="send-btn" onClick={go} disabled={disabled || !v.trim()}>
-          <svg viewBox="0 0 24 24">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
         </button>
       </div>
+      <div className="input-hint">Enter 送出 · Shift + Enter 換行</div>
     </div>
   );
 }
 
-export default function ChatShell({ username, messages, sending, onSend, onLogout }) {
+const ChatShell = React.forwardRef(function ChatShell(
+  { username, messages, history, sending, analyzing, onSend, onLogout,
+    panelOpen, onTogglePanel, mixRgb, mono },
+  ref
+) {
   const scrollerRef = React.useRef(null);
-  React.useEffect(() => {
-    const el = scrollerRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length, sending]);
+  const contentRef = React.useRef(null);
+  const stickRef = React.useRef(true);
+  const flashTimer = React.useRef(null);
+  const [flashIdx, setFlashIdx] = React.useState(null);
 
+  const scrollBottom = React.useCallback((smooth) => {
+    requestAnimationFrame(() => {
+      const el = scrollerRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    });
+  }, []);
+
+  // 內容高度變化 → 若使用者在底部附近就捲到底
+  React.useEffect(() => {
+    const node = contentRef.current;
+    if (!node) return;
+    const ro = new ResizeObserver(() => { if (stickRef.current) scrollBottom(true); });
+    ro.observe(node);
+    return () => ro.disconnect();
+  }, [scrollBottom]);
+
+  // 首次 mount（含 bootChat 還原歷史）直接跳到底
+  React.useEffect(() => { scrollBottom(false); }, [scrollBottom]);
+
+  React.useEffect(() => () => clearTimeout(flashTimer.current), []);
+
+  function onScroll() {
+    const el = scrollerRef.current;
+    if (el) stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  }
+
+  React.useImperativeHandle(ref, () => ({
+    scrollToUserMessage(i) {
+      setFlashIdx(i);
+      clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setFlashIdx(null), 1600);
+      const sc = scrollerRef.current;
+      const el = sc && sc.querySelector(`[data-hist-idx="${i}"]`);
+      if (el) {
+        stickRef.current = false;
+        sc.scrollTo({ top: el.offsetTop - sc.clientHeight / 2 + el.offsetHeight / 2, behavior: "smooth" });
+      }
+    },
+  }), []);
+
+  function handleSend(text) {
+    stickRef.current = true;
+    onSend(text);
+  }
+
+  const links = React.useMemo(() => linkHistory(messages, history), [messages, history]);
+  let lastUserIdx = -1;
+  messages.forEach((m, i) => { if (m.role === "user") lastUserIdx = i; });
   return (
     <div className="app">
-      <ChatHeader username={username} onLogout={onLogout} />
-      <div className="messages" ref={scrollerRef}>
-        {messages.length === 0 && !sending ? <Welcome /> : null}
-        {messages.map((m, i) => (
-          <Bubble key={i} role={m.role} elapsed={m.elapsed}>{m.content}</Bubble>
-        ))}
-        {sending ? <Typing /> : null}
+      <ChatHeader
+        username={username}
+        onLogout={onLogout}
+        pill={!panelOpen && (
+          <EmotionPill history={history} analyzing={analyzing} mixRgb={mixRgb} mono={mono} onClick={onTogglePanel} />
+        )}
+      />
+      <div className="messages" ref={scrollerRef} onScroll={onScroll}>
+        <div className="messages-col" ref={contentRef}>
+          {messages.length === 0 && !sending ? <Welcome /> : null}
+          {messages.map((m, i) => {
+            if (m.role !== "user") return <BotMessage key={i} m={m} />;
+            const hi = links[i];
+            const entry = hi != null ? history[hi] : null;
+            return (
+              <UserMessage
+                key={i}
+                m={m}
+                histIdx={hi}
+                entry={entry}
+                pending={!entry && analyzing && i === lastUserIdx}
+                flash={hi != null && flashIdx === hi}
+              />
+            );
+          })}
+          {sending ? <Typing /> : null}
+        </div>
       </div>
-      <Composer onSend={onSend} disabled={sending} />
+      <Composer onSend={handleSend} disabled={sending} />
     </div>
   );
-}
+});
+
+export default ChatShell;

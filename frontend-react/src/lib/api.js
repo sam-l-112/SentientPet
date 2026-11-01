@@ -48,7 +48,7 @@ export async function createSession(title = "新對話") {
 
 export async function getSessionMessages(csId) {
   const { data } = await api.get(`/api/ai/sessions/${csId}/messages`);
-  return data; // { success, messages: [{ role, content, message_at }] }
+  return data; // { success, messages: [{ role, content, message_at, created_at, reply_elapsed }] }
 }
 
 // 先只存使用者訊息，取得 user_mes_id，讓聊天 AI 與情緒分析可同時啟動

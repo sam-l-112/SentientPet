@@ -1,10 +1,12 @@
 // App.jsx — 主應用：登入流程 + 聊天 + 情緒分析。
 //
 
-// 情緒分析背景泡泡球混色邏輯：
-//   1. 如果沒有任何情緒值大於 25，則背景泡泡球顏色逐漸變淡。
-//   2. 如果至少有一個情緒值大於 25，則背景泡泡球顏色根據各情緒值加權混合。
-//   3. 背景泡泡球顏色會逐漸變濃。
+// 情緒混色（Chat v2）：
+//   1. 在色環上混色：每筆分析取 ≥25 的前兩名情緒，以分數加權 hue 單位向量，EMA 0.7/0.3。
+//      → computeMix(history) 得 targetHue / mono（重新整理後由 history 重算，不會跳回六色）。
+//   2. 沒有任何 ≥25 → mono -0.3（色相不變）；否則 mono +0.3。
+//   3. 顯示色相 dispHue 以 rAF 慢慢轉到 targetHue（3200ms、easeInOutCubic、走最短弧）。
+//   4. dispHue → 背景單色層 + 全 UI 主題色（CSS 變數 --theme-*）。
 
 // 流程：
 //   1. 啟動：讀 getSessions() 還原最新 session + 情緒歷史。
@@ -20,6 +22,48 @@ import EmotionPanel from "./components/EmotionPanel.jsx";
 import * as API from "./lib/api.js";
 import { sanitizeAnswer, cleanReply } from "./lib/sanitize.js";
 import { getTraditionalConverter } from "./lib/opencc.js";
+import {
+  computeMix, hueToRgb, buildTheme, applyTheme, clearTheme,
+  valenceOf, stageOf, formatTime,
+} from "./lib/theme.js";
+
+const toMs = (v) => { if (v == null) return null; const t = new Date(v).getTime(); return Number.isNaN(t) ? null : t; };
+
+// 把情緒分析接回正確的使用者訊息用：
+//   mesId      ← Emotion_Tracker.mes_id（後端有回傳時最準）
+//   analyzedAt ← Emotion_Tracker.analyzed_at（沒有 mes_id 時用時間對應）
+const mkEntry = (raw, saElapsed, mesId = raw.mes_id ?? null, analyzedAt = toMs(raw.analyzed_at) ?? Date.now()) => {
+  const score = raw.valence != null ? raw.valence : valenceOf(raw);
+  return { score, stage: stageOf(score), raw, saElapsed, mesId: mesId != null ? Number(mesId) : null, analyzedAt };
+};
+
+let localKeySeq = 0;
+
+// dispHue 以最短弧、easeInOutCubic 在 3200ms 內 tween 到 targetHue
+function useHueTween(targetHue) {
+  const [dispHue, setDispHue] = React.useState(null);
+  const dispRef = React.useRef(null);
+  React.useEffect(() => {
+    if (targetHue == null) { dispRef.current = null; setDispHue(null); return; }
+    const from = dispRef.current;
+    if (from == null) { dispRef.current = targetHue; setDispHue(targetHue); return; }
+    const delta = ((targetHue - from + 540) % 360) - 180;
+    if (Math.abs(delta) < 0.01) return;
+    const t0 = performance.now(), dur = 3200;
+    let raf;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+      const h = (from + delta * e + 360) % 360;
+      dispRef.current = h;
+      setDispHue(h);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [targetHue]);
+  return dispHue;
+}
 
 function readUser() {
   try {
@@ -42,11 +86,20 @@ export default function App() {
   const [sending,   setSending]   = React.useState(false);
 
   const [history,   setHistory]   = React.useState([]);
-  const [latest,    setLatest]    = React.useState(null);
-  const [mixColor,  setMixColor]  = React.useState(null);   // [r,g,b]
-  const [monoOpacity, setMonoOpacity] = React.useState(0); // 0..1
   const [analyzing, setAnalyzing] = React.useState(false);
   const [saError, setSaError] = React.useState(false);
+
+  const [panelOpen, setPanelOpen] = React.useState(false);
+  const chatRef = React.useRef(null);
+
+  // ── 情緒混色 → 背景 + 主題色 ─────────────────────────
+  const { hue: targetHue, mono } = React.useMemo(() => computeMix(history), [history]);
+  const dispHue = useHueTween(targetHue);
+  const mixRgb = hueToRgb(dispHue);
+  const theme = React.useMemo(() => buildTheme(mixRgb, mono), [dispHue, mono]); // eslint-disable-line react-hooks/exhaustive-deps
+  React.useLayoutEffect(() => {
+    if (route === "chat") applyTheme(theme); else clearTheme();
+  }, [theme, route]);
 
   // ── 啟動：還原登入狀態 ───────────────────────────────
   React.useEffect(() => {
@@ -73,24 +126,18 @@ export default function App() {
           setMessages(msgData.messages.map((m) => ({
             role: m.role === "user" ? "user" : "bot",
             content: m.content,
+            mesId: m.mes_id != null ? Number(m.mes_id) : null,
             elapsed: m.role === "assistant" ? m.reply_elapsed ?? null : null,
+            time: formatTime(m.created_at ?? m.message_at ?? null),
+            ts: toMs(m.created_at ?? m.message_at),
           })));
         }
 
         // 還原情緒歷史
         const emotionData = await API.getEmotionHistory(latest.cs_id);
         if (emotionData.success && emotionData.history?.length > 0) {
-          setHistory(emotionData.history.map((r) => {
-            const valence = r.valence != null
-              ? r.valence
-              : Math.min(100, Math.max(0,
-                Math.round(
-                  (r.joy * 1.5 - r.sadness - r.anger - r.fear - r.disgust + r.surprise * 0.5 + 150) / 4
-                )
-              ))
-            const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
-            return { score: valence, stage: computedStage, raw: r, saElapsed: r.sa_elapsed ?? null };
-          }));
+          // 用同一套 mkEntry / computeMix，重新整理後混色會依歷史重算
+          setHistory(emotionData.history.map((r) => mkEntry(r, r.sa_elapsed ?? null, r.mes_id ?? null, toMs(r.analyzed_at))));
         }
       } else {
         // 完全沒有 session，才建新的
@@ -116,16 +163,20 @@ export default function App() {
     setUser(null);
     setMessages([]);
     setHistory([]);
-    setLatest(null);
-    setMixColor(null);
-    setMonoOpacity(0);
+    setPanelOpen(false);
     setRoute("auth");
   }
 
   // ── 送訊息 ─────────────────────────────────────────
   async function onSend(text) {
     if (!csId) { console.warn("尚未建立 session"); return; }
-    setMessages((m) => [...m, { role: "user", content: text }]);
+    const localKey = ++localKeySeq;
+    setMessages((m) => [...m, { role: "user", content: text, time: formatTime(), ts: Date.now(), mesId: null, localKey }]);
+    // 拿到 user_mes_id 後補進這則訊息，讓情緒分析能用 ID 對應
+    const attachMesId = (id) => {
+      if (id == null) return;
+      setMessages((m) => m.map((x) => (x.localKey === localKey ? { ...x, mesId: Number(id) } : x)));
+    };
     setSending(true);
     const sendTime = Date.now(); // ← 記錄送出時間
 
@@ -134,7 +185,7 @@ export default function App() {
       let userMesId = null;
       try {
         const saved = await API.saveUserMessage(csId, text);
-        if (saved.success) userMesId = saved.user_mes_id;
+        if (saved.success) { userMesId = saved.user_mes_id; attachMesId(userMesId); }
       } catch { /* 後端尚未提供此 API → 退回舊流程（聊天回覆後再做情緒分析） */ }
 
       // 1. 情緒分析：有 user_mes_id 就立刻啟動（背景執行，不等聊天 AI）
@@ -143,22 +194,25 @@ export default function App() {
       // 2. AI 對話（與情緒分析並行）
       const aiData = await API.sendMessage(csId, text, userMesId);
       if (!aiData.success) throw new Error(aiData.message || "AI 回覆失敗");
+      if (!userMesId) attachMesId(aiData.user_mes_id);
 
       let reply = cleanReply(sanitizeAnswer(aiData.reply));
       try { const toTW = getTraditionalConverter(); reply = toTW(reply); }
       catch { /* opencc 失敗就用原文 */ }
 
       const elapsed = ((Date.now() - sendTime) / 1000).toFixed(1);
-      setMessages((m) => [...m, { role: "bot", content: reply, elapsed }]);
+      setMessages((m) => [...m, { role: "bot", content: reply, elapsed, time: formatTime(), ts: Date.now(), mesId: aiData.mes_id ?? null }]);
 
       // ── AI 回覆顯示後立刻解鎖 composer ──
       setSending(false);
 
       // 3. 舊流程相容：沒拿到 user_mes_id 才在聊天回覆後補跑情緒分析
-      if (!userMesId && aiData.mes_id) runSentiment(text, aiData.mes_id);
+      //    以使用者訊息的 ID 記錄（後端有回 user_mes_id 時），對應才正確
+      const fallbackId = aiData.user_mes_id ?? aiData.mes_id;
+      if (!userMesId && fallbackId) runSentiment(text, fallbackId);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "未知錯誤";
-      setMessages((m) => [...m, { role: "bot", content: `⚠️ ${msg}` }]);
+      setMessages((m) => [...m, { role: "bot", content: `⚠️ ${msg}`, time: formatTime() }]);
       setSending(false);
     }
   }
@@ -173,46 +227,9 @@ export default function App() {
             if (saData.success && saData.data) {
               const raw = saData.data;
 
-              // ── 背景泡泡球情緒分析混色邏輯 ────────────────────────────────
-              const EMOTION_RGB = {
-                joy:      [255, 217,  61],
-                sadness:  [ 91, 168, 216],
-                anger:    [224,  85,  85],
-                fear:     [155, 137, 212],
-                disgust:  [123, 194, 138],
-                surprise: [212, 101,  26],
-              };
-              const ekKeys = Object.keys(EMOTION_RGB);
-              const active = ekKeys.filter(k => (raw[k] ?? 0) >= 25);
-              if (active.length === 0) {
-                setMonoOpacity(prev => Math.max(0, +(prev - 0.3).toFixed(3)));
-              } else {
-                const total = active.reduce((s, k) => s + (raw[k] ?? 0), 0);
-                const target = [0,1,2].map(ch =>
-                  active.reduce((s, k) => s + EMOTION_RGB[k][ch] * ((raw[k] ?? 0) / total), 0)
-                );
-                setMixColor(prev => !prev ? target : [
-                  prev[0] * 0.7 + target[0] * 0.3,
-                  prev[1] * 0.7 + target[1] * 0.3,
-                  prev[2] * 0.7 + target[2] * 0.3,
-                ]);
-                setMonoOpacity(prev => Math.min(1, +(prev + 0.3).toFixed(3)));
-              }
-
+              // 混色由 history 重算（computeMix），這裡只要把結果加進 history
               const saElapsed = ((Date.now() - saStartTime) / 1000).toFixed(1);
-              const valence = Math.min(100, Math.max(0,
-                Math.round(
-                  (raw.joy * 1.5 - raw.sadness - raw.anger - raw.fear - raw.disgust + raw.surprise * 0.5 + 150) / 4
-                )
-              ));
-              const computedStage = valence >= 67 ? "positive" : valence <= 33 ? "negative" : "neutral";
-              setHistory((h) => [...h, {
-                score: valence,
-                stage: raw.stage ?? computedStage,
-                raw,
-                saElapsed,
-              }]);
-              setLatest(raw);
+              setHistory((h) => [...h, mkEntry(raw, saElapsed, mesId)]);
             }
           })
           .catch((saErr) => { 
@@ -224,18 +241,33 @@ export default function App() {
 
   return (
     <>
-      <LavaBackground mixColor={mixColor} monoOpacity={monoOpacity} route={route} />
+      <LavaBackground mixRgb={mixRgb} monoOpacity={mono} route={route} />
       {route === "auth" && <AuthPage onLoggedIn={onLoggedIn} />}
       {route === "chat" && (
         <div className="layout">
           <ChatShell
+            ref={chatRef}
             username={user ? user.username : ""}
             messages={messages}
+            history={history}
             sending={sending}
+            analyzing={analyzing}
             onSend={onSend}
             onLogout={onLogout}
+            panelOpen={panelOpen}
+            onTogglePanel={() => setPanelOpen((o) => !o)}
+            mixRgb={mixRgb}
+            mono={mono}
           />
-          <EmotionPanel history={history} analyzing={analyzing} saError={saError} />
+          {panelOpen && (
+            <EmotionPanel
+              history={history}
+              analyzing={analyzing}
+              saError={saError}
+              onClose={() => setPanelOpen(false)}
+              onJump={(i) => chatRef.current?.scrollToUserMessage(i)}
+            />
+          )}
         </div>
       )}
     </>
