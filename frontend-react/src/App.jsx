@@ -27,10 +27,13 @@ import {
   valenceOf, stageOf, formatTime,
 } from "./lib/theme.js";
 
-const mkEntry = (raw, saElapsed) => {
+// mesId：對應的訊息 ID（Emotion_Tracker.mes_id），用來把情緒分析接回正確的使用者訊息
+const mkEntry = (raw, saElapsed, mesId = raw.mes_id ?? null) => {
   const score = raw.valence != null ? raw.valence : valenceOf(raw);
-  return { score, stage: stageOf(score), raw, saElapsed };
+  return { score, stage: stageOf(score), raw, saElapsed, mesId: mesId != null ? Number(mesId) : null };
 };
+
+let localKeySeq = 0;
 
 // dispHue 以最短弧、easeInOutCubic 在 3200ms 內 tween 到 targetHue
 function useHueTween(targetHue) {
@@ -119,6 +122,7 @@ export default function App() {
           setMessages(msgData.messages.map((m) => ({
             role: m.role === "user" ? "user" : "bot",
             content: m.content,
+            mesId: m.mes_id != null ? Number(m.mes_id) : null,
             elapsed: m.role === "assistant" ? m.reply_elapsed ?? null : null,
             time: formatTime(m.created_at ?? m.message_at ?? null),
           })));
@@ -161,7 +165,13 @@ export default function App() {
   // ── 送訊息 ─────────────────────────────────────────
   async function onSend(text) {
     if (!csId) { console.warn("尚未建立 session"); return; }
-    setMessages((m) => [...m, { role: "user", content: text, time: formatTime() }]);
+    const localKey = ++localKeySeq;
+    setMessages((m) => [...m, { role: "user", content: text, time: formatTime(), mesId: null, localKey }]);
+    // 拿到 user_mes_id 後補進這則訊息，讓情緒分析能用 ID 對應
+    const attachMesId = (id) => {
+      if (id == null) return;
+      setMessages((m) => m.map((x) => (x.localKey === localKey ? { ...x, mesId: Number(id) } : x)));
+    };
     setSending(true);
     const sendTime = Date.now(); // ← 記錄送出時間
 
@@ -170,7 +180,7 @@ export default function App() {
       let userMesId = null;
       try {
         const saved = await API.saveUserMessage(csId, text);
-        if (saved.success) userMesId = saved.user_mes_id;
+        if (saved.success) { userMesId = saved.user_mes_id; attachMesId(userMesId); }
       } catch { /* 後端尚未提供此 API → 退回舊流程（聊天回覆後再做情緒分析） */ }
 
       // 1. 情緒分析：有 user_mes_id 就立刻啟動（背景執行，不等聊天 AI）
@@ -179,19 +189,22 @@ export default function App() {
       // 2. AI 對話（與情緒分析並行）
       const aiData = await API.sendMessage(csId, text, userMesId);
       if (!aiData.success) throw new Error(aiData.message || "AI 回覆失敗");
+      if (!userMesId) attachMesId(aiData.user_mes_id);
 
       let reply = cleanReply(sanitizeAnswer(aiData.reply));
       try { const toTW = getTraditionalConverter(); reply = toTW(reply); }
       catch { /* opencc 失敗就用原文 */ }
 
       const elapsed = ((Date.now() - sendTime) / 1000).toFixed(1);
-      setMessages((m) => [...m, { role: "bot", content: reply, elapsed, time: formatTime() }]);
+      setMessages((m) => [...m, { role: "bot", content: reply, elapsed, time: formatTime(), mesId: aiData.mes_id ?? null }]);
 
       // ── AI 回覆顯示後立刻解鎖 composer ──
       setSending(false);
 
       // 3. 舊流程相容：沒拿到 user_mes_id 才在聊天回覆後補跑情緒分析
-      if (!userMesId && aiData.mes_id) runSentiment(text, aiData.mes_id);
+      //    以使用者訊息的 ID 記錄（後端有回 user_mes_id 時），對應才正確
+      const fallbackId = aiData.user_mes_id ?? aiData.mes_id;
+      if (!userMesId && fallbackId) runSentiment(text, fallbackId);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "未知錯誤";
       setMessages((m) => [...m, { role: "bot", content: `⚠️ ${msg}`, time: formatTime() }]);
@@ -211,7 +224,7 @@ export default function App() {
 
               // 混色由 history 重算（computeMix），這裡只要把結果加進 history
               const saElapsed = ((Date.now() - saStartTime) / 1000).toFixed(1);
-              setHistory((h) => [...h, mkEntry(raw, saElapsed)]);
+              setHistory((h) => [...h, mkEntry(raw, saElapsed, mesId)]);
             }
           })
           .catch((saErr) => { 

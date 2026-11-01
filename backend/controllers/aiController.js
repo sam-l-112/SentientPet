@@ -242,8 +242,9 @@ exports.getHistory = async (req, res) => {
 
         // 取得聊天資訊 mariadb 不需要解構
         const messages = await pool.query(
+            // mes_id：前端用來把訊息對應到 Emotion_Tracker.mes_id
             // created_at：給前端顯示訊息時間（與 message_at 相同，保留舊欄位相容）
-            `SELECT role, content, message_at, message_at AS created_at, reply_elapsed
+            `SELECT mes_id, role, content, message_at, message_at AS created_at, reply_elapsed
              FROM messages
              WHERE cs_id = ?
              ORDER BY message_at ASC`,

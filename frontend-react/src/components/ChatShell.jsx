@@ -1,9 +1,9 @@
 // ChatShell — header + messages + composer（Chat v2）。
 //
 // - 置中單欄（760px），AI 回覆有標誌 + 對話框 + 時間 / 回覆秒數
-// - 使用者訊息 hover 顯示「情緒為：XX　時間」；第 n 則使用者訊息 ↔ history[n]
+// - 使用者訊息 hover 顯示「情緒為：XX　時間」；訊息 ↔ 情緒分析以 mes_id 對應（見 linkHistory）
 // - 自動捲到底（ResizeObserver），只有使用者在底部附近時才捲
-// - ref.scrollToUserMessage(i)：給 EmotionPanel 折線圖點擊跳轉 + 高亮
+// - ref.scrollToUserMessage(i)：i 為 history 索引；給 EmotionPanel 折線圖點擊跳轉 + 高亮
 //
 // 主題色全部走 app.css 的 var(--theme-*)；只有 pill 需要 mixRgb / mono 做混色背景。
 
@@ -71,6 +71,37 @@ function BotMark() {
   );
 }
 
+// 回傳每則訊息對應的 history 索引（沒有對應則為 null）。
+// - 以 mes_id 對應：沒做過情緒分析的訊息（例如「哈囉」）不會讓後面錯位
+// - 舊資料可能存成 AI 回覆的 mes_id → 對應到它前一則使用者訊息
+// - 雙方都沒有 mes_id（後端尚未更新）時，退回依序對應
+export function linkHistory(messages, history) {
+  const out = messages.map(() => null);
+  const hasIds = history.some((h) => h.mesId != null) && messages.some((m) => m.mesId != null);
+  if (!hasIds) {
+    let ui = 0;
+    messages.forEach((m, i) => {
+      if (m.role !== "user") return;
+      if (ui < history.length) out[i] = ui;
+      ui++;
+    });
+    return out;
+  }
+  const idToMsg = new Map();
+  let lastUser = null;
+  messages.forEach((m, i) => {
+    if (m.role === "user") lastUser = i;
+    if (m.mesId == null) return;
+    if (m.role === "user") idToMsg.set(m.mesId, i);
+    else if (lastUser != null && !idToMsg.has(m.mesId)) idToMsg.set(m.mesId, lastUser);
+  });
+  history.forEach((h, hi) => {
+    const mi = h.mesId != null ? idToMsg.get(h.mesId) : undefined;
+    if (mi != null) out[mi] = hi; // 同一則重複分析時取最新
+  });
+  return out;
+}
+
 function dominantEmotion(raw) {
   return EMOTIONS_META.reduce(
     (best, e) => ((raw[e.key] ?? 0) > (raw[best.key] ?? 0) ? e : best),
@@ -78,10 +109,10 @@ function dominantEmotion(raw) {
   );
 }
 
-function UserMessage({ m, userIdx, entry, pending, flash }) {
+function UserMessage({ m, histIdx, entry, pending, flash }) {
   const dom = entry ? dominantEmotion(entry.raw) : null;
   return (
-    <div className={`msg-user${flash ? " is-flash" : ""}`} data-user-msg={userIdx}>
+    <div className={`msg-user${flash ? " is-flash" : ""}`} data-hist-idx={histIdx ?? undefined}>
       <div className="bubble-user"><Lines text={m.content} /></div>
       <div className="msg-user-meta">
         {dom && (
@@ -266,7 +297,7 @@ const ChatShell = React.forwardRef(function ChatShell(
       clearTimeout(flashTimer.current);
       flashTimer.current = setTimeout(() => setFlashIdx(null), 1600);
       const sc = scrollerRef.current;
-      const el = sc && sc.querySelector(`[data-user-msg="${i}"]`);
+      const el = sc && sc.querySelector(`[data-hist-idx="${i}"]`);
       if (el) {
         stickRef.current = false;
         sc.scrollTo({ top: el.offsetTop - sc.clientHeight / 2 + el.offsetHeight / 2, behavior: "smooth" });
@@ -279,7 +310,9 @@ const ChatShell = React.forwardRef(function ChatShell(
     onSend(text);
   }
 
-  let userCount = 0;
+  const links = React.useMemo(() => linkHistory(messages, history), [messages, history]);
+  let lastUserIdx = -1;
+  messages.forEach((m, i) => { if (m.role === "user") lastUserIdx = i; });
   return (
     <div className="app">
       <ChatHeader
@@ -294,16 +327,16 @@ const ChatShell = React.forwardRef(function ChatShell(
           {messages.length === 0 && !sending ? <Welcome /> : null}
           {messages.map((m, i) => {
             if (m.role !== "user") return <BotMessage key={i} m={m} />;
-            const ui = userCount++;
-            const entry = history[ui] ?? null;
+            const hi = links[i];
+            const entry = hi != null ? history[hi] : null;
             return (
               <UserMessage
                 key={i}
                 m={m}
-                userIdx={ui}
+                histIdx={hi}
                 entry={entry}
-                pending={!entry && analyzing}
-                flash={flashIdx === ui}
+                pending={!entry && analyzing && i === lastUserIdx}
+                flash={hi != null && flashIdx === hi}
               />
             );
           })}
