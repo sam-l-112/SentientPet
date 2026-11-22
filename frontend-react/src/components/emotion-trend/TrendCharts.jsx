@@ -7,7 +7,7 @@
 
 import React from "react";
 import CandleChart, { CandleAxis, CANDLE_H } from "./CandleChart.jsx";
-import RangeBars, { BarsAxis, BARS_H } from "./RangeBars.jsx";
+import RangeBars, { BarsAxis } from "./RangeBars.jsx";
 import { CELLS_PER_BAR, scoreDomain, changeDomain, hhmm } from "./calc.js";
 import { WINDOW_CELLS } from "./constants.js";
 import {
@@ -152,8 +152,7 @@ function TrendCharts({ timeline, active }) {
       <div className="et-chart-title">{COPY.candleTitle}</div>
       <div className="et-chart-row">
         <CandleAxis domain={kDomain} width={AXIS_W} />
-        <div className="et-scroll" ref={kRef} onScroll={() => onScroll(kRef, bRef)} {...pointerHandlers}
-          style={{ height: CANDLE_H }}>
+        <div className="et-scroll" ref={kRef} onScroll={() => onScroll(kRef, bRef)} {...pointerHandlers}>
           <CandleChart cells={cells} visible={visible} cellW={cellW} domain={kDomain} labelEvery={labelEvery}
             onTip={handleTip} empty={!points.length} emptyText={COPY.empty} />
         </div>
@@ -163,8 +162,7 @@ function TrendCharts({ timeline, active }) {
       <div className="et-chart-title">{COPY.barTitle}</div>
       <div className="et-chart-row">
         <BarsAxis domain={bDomain} width={AXIS_W} />
-        <div className="et-scroll" ref={bRef} onScroll={() => onScroll(bRef, kRef)} {...pointerHandlers}
-          style={{ height: BARS_H }}>
+        <div className="et-scroll" ref={bRef} onScroll={() => onScroll(bRef, kRef)} {...pointerHandlers}>
           <RangeBars bars={bars} visible={visible} cellCount={cells.length} cellW={cellW} domain={bDomain} onTip={handleTip} />
         </div>
       </div>
