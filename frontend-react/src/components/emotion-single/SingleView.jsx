@@ -1,18 +1,13 @@
-// EmotionPanel — 可收合常駐右側欄（Chat v2）。
+// SingleView — 「單一對話」分頁：每則訊息一個點。
 //
-// - 由 App 控制 mount / unmount（無滑入動畫）；× 關閉
-// - 左緣拖曳調整寬度：clamp(300, min(760, innerWidth - 360))
 // - 折線圖：點擊點 → onJump(i) 跳到該則使用者訊息；滾輪以游標為錨點縮放（1–8x）
-// - 雷達固定 218×240；panelW ≥ 400 卡片在右 (2×3)，< 400 卡片在雷達上方 (3×2)
-// - 上方分頁：單一對話（每則訊息）／中、長期對話（中期 5 分鐘、長期 10 分鐘時段，
-//   圖表可切換折線圖／股市圖，◀ ▶ 切換時段，下方顯示該時段的平均）
+// - 雷達固定 218×240；wide（面板 ≥ 400）卡片在右 (2×3)，否則卡片在雷達上方 (3×2)
+// - 樣式沿用 styles/app.css 的 .ec-*（單一對話專用）
 //
 // history：[{ score, stage, raw: { joy, sadness, ..., summary }, saElapsed }, ...]
 
 import React from "react";
-import { EMOTIONS_META, stageOf } from "../lib/theme.js";
-import { buildPeriods, hhmm } from "../lib/periods.js";
-import PeriodChart from "./PeriodChart.jsx";
+import { EMOTIONS_META, stageOf } from "../../lib/theme.js";
 
 const STAGE = {
   positive: { name: "正面", className: "pos" },
@@ -20,19 +15,6 @@ const STAGE = {
   negative: { name: "負面", className: "neg" },
 };
 const CARD_ORDER = ["surprise", "joy", "disgust", "sadness", "fear", "anger"];
-const PERIODS = [{ min: 5, label: "中期 5 分鐘" }, { min: 10, label: "長期 10 分鐘" }];
-const CHARTS = [{ key: "line", label: "折線圖" }, { key: "candle", label: "股市圖" }];
-
-function Seg({ items, value, onChange, className = "" }) {
-  return (
-    <div className={`ec-seg ${className}`}>
-      {items.map((it) => (
-        <button key={it.key} className={`ec-seg-btn${it.key === value ? " is-on" : ""}`}
-          onClick={() => onChange(it.key)}>{it.label}</button>
-      ))}
-    </div>
-  );
-}
 
 const H = 180, PAD_X = 18, PAD_Y_TOP = 14, PAD_Y_BOT = 30;
 
@@ -192,39 +174,8 @@ function Radar({ data }) {
   );
 }
 
-function useResize(initial) {
-  const [w, setW] = React.useState(initial);
-  const [resizing, setResizing] = React.useState(false);
-  const start = React.useCallback((e) => {
-    e.preventDefault();
-    const x0 = e.clientX, w0 = w;
-    const move = (ev) => {
-      const max = Math.min(760, window.innerWidth - 360);
-      setW(Math.round(Math.max(300, Math.min(max, w0 + (x0 - ev.clientX)))));
-    };
-    const up = () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      setResizing(false);
-    };
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    setResizing(true);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-  }, [w]);
-  return [w, resizing, start];
-}
-
-export default function EmotionPanel({ history, analyzing, saError, onClose, onJump }) {
+export default function SingleView({ history, analyzing, saError, onJump, wide }) {
   const [selectedIdx, setSelectedIdx] = React.useState(null);
-  const [panelW, resizing, startResize] = useResize(420);
-  const [view, setView] = React.useState("single");   // single | period
-  const [periodMin, setPeriodMin] = React.useState(5);
-  const [chartMode, setChartMode] = React.useState("line");
-  const [periodIdx, setPeriodIdx] = React.useState(null); // null = 最新時段
 
   // 新分析進來 → 選最新一筆
   const lenRef = React.useRef(history.length);
@@ -239,34 +190,20 @@ export default function EmotionPanel({ history, analyzing, saError, onClose, onJ
   const hasData = scores.length > 0;
   const idx = selectedIdx != null && selectedIdx < scores.length ? selectedIdx : hasData ? scores.length - 1 : -1;
 
-  const periods = React.useMemo(() => buildPeriods(history, periodMin), [history, periodMin]);
-  const pIdx = periodIdx != null && periodIdx < periods.length ? periodIdx : periods.length - 1;
-  const period = pIdx >= 0 ? periods[pIdx] : null;
-  const isPeriod = view === "period";
-
-  const shown = isPeriod ? period != null : hasData;
-  const cur = !shown ? 50 : isPeriod ? period.avg : scores[idx];
-  const prev = isPeriod ? (pIdx > 0 ? periods[pIdx - 1].avg : null) : (idx > 0 ? scores[idx - 1] : null);
-  const stage = STAGE[shown ? stageOf(cur) : "neutral"];
+  const cur = !hasData ? 50 : scores[idx];
+  const prev = idx > 0 ? scores[idx - 1] : null;
+  const stage = STAGE[hasData ? stageOf(cur) : "neutral"];
   const delta = prev == null ? null : cur - prev;
-  const deltaStr = !shown ? "尚未分析"
+  const deltaStr = !hasData ? "尚未分析"
     : delta == null ? "首次紀錄"
     : delta > 0 ? `↑ 變化 +${delta}`
     : delta < 0 ? `↓ 變化 ${delta}`
     : "— 變化-不變";
 
-  const raw = !shown ? {} : isPeriod ? period.raw : history[idx].raw;
-  const saElapsed = hasData && !isPeriod ? history[idx].saElapsed : null;
-  const summary = shown && !isPeriod ? raw.summary : null;
-  const kpiLabel = !shown ? "最新綜合分數"
-    : isPeriod ? `${hhmm(period.start)}–${hhmm(period.end)} · 平均綜合分數 · ${period.entries.length} 則`
-    : `第 ${idx + 1} 次對話 · 綜合分數`;
-  const wide = panelW >= 400;
-
-  function changePeriodMin(min) {
-    setPeriodMin(min);
-    setPeriodIdx(null);
-  }
+  const raw = !hasData ? {} : history[idx].raw;
+  const saElapsed = hasData ? history[idx].saElapsed : null;
+  const summary = hasData ? raw.summary : null;
+  const kpiLabel = !hasData ? "最新綜合分數" : `第 ${idx + 1} 次對話 · 綜合分數`;
 
   function jump(i) {
     setSelectedIdx(i);
@@ -274,96 +211,59 @@ export default function EmotionPanel({ history, analyzing, saError, onClose, onJ
   }
 
   return (
-    <div className="emotion-dock" style={{ width: panelW }}>
-      <div className="ec-resize" onMouseDown={startResize} title="拖曳調整寬度">
-        <div className={`ec-resize-grip${resizing ? " is-active" : ""}`} />
+    <>
+      <div className="ec-kpi">
+        <div className="ec-label">{kpiLabel}</div>
+        <div className="ec-value">{cur}</div>
+        <div className={`ec-stage ${stage.className}`}>{stage.name}</div>
+        <div className="ec-change">{deltaStr}</div>
       </div>
-      <aside className="emotion-panel">
-        <div className="ec-wrap">
-          <div className="ec-head">
-            <div className="ec-title">情緒分析</div>
-            <button className="ec-close" onClick={onClose} title="收起" aria-label="收起">×</button>
-          </div>
 
-          <Seg className="ec-tabs" value={view} onChange={setView}
-            items={[{ key: "single", label: "單一對話" }, { key: "period", label: "中、長期對話" }]} />
+      <div className="ec-legend">
+        {EMOTIONS_META.map((e) => (
+          <span key={e.key} className="legend-item">
+            <span className="legend-dot" style={{ background: e.color }}></span>
+            {e.label}
+          </span>
+        ))}
+      </div>
 
-          {isPeriod && (
-            <div className="ec-period-bar">
-              <Seg value={periodMin} onChange={changePeriodMin}
-                items={PERIODS.map((p) => ({ key: p.min, label: p.label }))} />
-              <Seg value={chartMode} onChange={setChartMode} items={CHARTS} />
-            </div>
-          )}
+      <div className="ec-trend-wrap">
+        <Sparkline scores={scores} selectedIdx={idx} onSelect={jump} />
+      </div>
 
-          {isPeriod && period && (
-            <div className="ec-period-nav">
-              <button className="ec-nav-btn" disabled={pIdx <= 0}
-                onClick={() => setPeriodIdx(pIdx - 1)} aria-label="上一個時段">◀</button>
-              <span className="ec-nav-label">{hhmm(period.start)}–{hhmm(period.end)}（{pIdx + 1}/{periods.length}）</span>
-              <button className="ec-nav-btn" disabled={pIdx >= periods.length - 1}
-                onClick={() => setPeriodIdx(pIdx + 1 >= periods.length - 1 ? null : pIdx + 1)} aria-label="下一個時段">▶</button>
-            </div>
-          )}
-
-          <div className="ec-kpi">
-            <div className="ec-label">{kpiLabel}</div>
-            <div className="ec-value">{cur}</div>
-            <div className={`ec-stage ${stage.className}`}>{stage.name}</div>
-            <div className="ec-change">{deltaStr}</div>
-          </div>
-
-          <div className="ec-legend">
-            {EMOTIONS_META.map((e) => (
-              <span key={e.key} className="legend-item">
-                <span className="legend-dot" style={{ background: e.color }}></span>
-                {e.label}
-              </span>
-            ))}
-          </div>
-
-          <div className="ec-trend-wrap">
-            {isPeriod
-              ? <PeriodChart period={period} mode={chartMode} />
-              : <Sparkline scores={scores} selectedIdx={idx} onSelect={jump} />}
-          </div>
-
-          <div className={`ec-radar-row ${wide ? "is-wide" : "is-narrow"}`}>
-            <div className="ec-radar-wrap"><Radar data={raw} /></div>
-            <div className="ec-emotion-cards">
-              {CARD_ORDER.map((k) => {
-                const e = EMOTIONS_META.find((x) => x.key === k);
-                return (
-                  <div key={e.key} className="ec-emotion-card">
-                    <div className="ec-emotion-bar" style={{ background: e.color }} />
-                    <div className="ec-emotion-label">
-                      <span className="ec-emotion-swatch" style={{ background: e.color }}></span>
-                      {e.label}
-                    </div>
-                    <div className="ec-emotion-value">{shown ? raw[e.key] ?? 0 : "—"}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {summary && <div className="ec-summary">總結：{summary}</div>}
-
-          <div className="ec-hint">
-            {analyzing ? (
-              <span>
-                {"⏳ 情緒分析中…".split("").map((ch, i) => (
-                  <span key={i} className="ec-wave" style={{ animationDelay: `${i * 0.08}s` }}>{ch}</span>
-                ))}
-              </span>
-            ) : saError ? "⚠️ 情緒分析服務連線失敗"
-              : !isPeriod ? "點擊折線圖上的點可跳到該則訊息 · 滾輪可縮放"
-              : chartMode === "line" ? "每個點是 1 分鐘內綜合分數的平均 · ◀ ▶ 切換時段"
-              : "每個長方形是 1 分鐘內綜合分數的最高與最低 · ◀ ▶ 切換時段"}
-            {saElapsed && <div>⏱ 情緒分析時間：{saElapsed} 秒</div>}
-          </div>
+      <div className={`ec-radar-row ${wide ? "is-wide" : "is-narrow"}`}>
+        <div className="ec-radar-wrap"><Radar data={raw} /></div>
+        <div className="ec-emotion-cards">
+          {CARD_ORDER.map((k) => {
+            const e = EMOTIONS_META.find((x) => x.key === k);
+            return (
+              <div key={e.key} className="ec-emotion-card">
+                <div className="ec-emotion-bar" style={{ background: e.color }} />
+                <div className="ec-emotion-label">
+                  <span className="ec-emotion-swatch" style={{ background: e.color }}></span>
+                  {e.label}
+                </div>
+                <div className="ec-emotion-value">{hasData ? raw[e.key] ?? 0 : "—"}</div>
+              </div>
+            );
+          })}
         </div>
-      </aside>
-    </div>
+      </div>
+
+      {summary && <div className="ec-summary">總結：{summary}</div>}
+
+      <div className="ec-hint">
+        {analyzing ? (
+          <span>
+            {"⏳ 情緒分析中…".split("").map((ch, i) => (
+              <span key={i} className="ec-wave" style={{ animationDelay: `${i * 0.08}s` }}>{ch}</span>
+            ))}
+          </span>
+        ) : saError ? "⚠️ 情緒分析服務連線失敗"
+          : "點擊折線圖上的點可跳到該則訊息 · 滾輪可縮放"}
+        {saElapsed && <div>⏱ 情緒分析時間：{saElapsed} 秒</div>}
+      </div>
+    </>
   );
 }

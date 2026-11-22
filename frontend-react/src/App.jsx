@@ -18,7 +18,7 @@ import React from "react";
 import LavaBackground from "./components/LavaBackground.jsx";
 import AuthPage from "./components/AuthCard.jsx";
 import ChatShell from "./components/ChatShell.jsx";
-import EmotionPanel from "./components/EmotionPanel.jsx";
+import EmotionPanel from "./components/emotion-panel/EmotionPanel.jsx";
 import * as API from "./lib/api.js";
 import { sanitizeAnswer, cleanReply } from "./lib/sanitize.js";
 import { getTraditionalConverter } from "./lib/opencc.js";

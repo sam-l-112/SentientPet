@@ -570,30 +570,3 @@ html { font-size: 17px; }
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-5px); }
 }
-/* ────────── EmotionPanel：分頁與中、長期對話 ────────── */
-.ec-seg {
-  display: flex; gap: 4px; padding: 3px;
-  background: rgba(255,255,255,.6);
-  border: 1px solid var(--theme-hair);
-  border-radius: 12px;
-}
-.ec-seg-btn {
-  flex: 1 1 0; border: none; background: transparent; cursor: pointer;
-  padding: 6px 10px; border-radius: 9px;
-  font: inherit; font-size: 12.5px; font-weight: 700; color: var(--cv-label);
-  white-space: nowrap;
-}
-.ec-seg-btn:hover { color: var(--cv-ink); }
-.ec-seg-btn.is-on { background: var(--theme-deep); color: #fff; box-shadow: var(--theme-shadow-sm); }
-.ec-tabs .ec-seg-btn { padding: 8px 10px; font-size: 13.5px; }
-.ec-period-bar { display: flex; flex-wrap: wrap; gap: 8px; }
-.ec-period-bar .ec-seg { flex: 1 1 160px; }
-.ec-period-nav { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.ec-nav-label { font-size: 13px; font-weight: 700; color: var(--cv-ink); min-width: 0; text-align: center; }
-.ec-nav-btn {
-  width: 30px; height: 30px; border-radius: 10px; cursor: pointer;
-  border: 1px solid var(--theme-line);
-  background: linear-gradient(180deg, var(--theme-soft), rgba(255,255,255,.4));
-  color: var(--theme-deep); font-size: 12px;
-}
-.ec-nav-btn:disabled { opacity: .35; cursor: default; }

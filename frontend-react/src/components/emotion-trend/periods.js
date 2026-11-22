@@ -6,7 +6,7 @@
 //   - avg / raw：整個時段的綜合分數平均與六種情緒平均
 // 時間以 history 的 analyzedAt（Emotion_Tracker.analyzed_at）為準。
 
-import { EMOTIONS_META } from "./theme.js";
+import { EMOTIONS_META } from "../../lib/theme.js";
 
 const MINUTE = 60 * 1000;
 const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;

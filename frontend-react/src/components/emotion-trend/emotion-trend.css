@@ -1,0 +1,102 @@
+/* 中、長期對話包專用樣式（.et-*）。
+   從單一對話（styles/app.css 的 .ec-*）複製而來，之後兩邊各改各的，互不影響。 */
+.et-kpi { text-align: center; padding: 6px 0; }
+.et-label { font-size: 12px; font-weight: 600; color: var(--cv-label); margin-bottom: 4px; }
+.et-value { font-size: 42px; font-weight: 600; color: var(--cv-ink); line-height: 1; }
+.et-stage { font-size: 14px; font-weight: 800; margin-top: 6px; }
+.et-stage.pos { color: var(--cv-stage-pos); }
+.et-stage.neu { color: var(--cv-stage-neu); }
+.et-stage.neg { color: var(--cv-stage-neg); }
+.et-change { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--cv-change); }
+
+.et-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.et-legend-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--cv-ink);
+}
+.et-legend-dot {
+  width: 9px; height: 9px; border-radius: 50%; display: inline-block;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.85);
+}
+
+.et-trend-wrap {
+  position: relative; width: 100%; height: 200px;
+  background: #fff;
+  border: 1px solid rgba(200,180,220,.22);
+  border-radius: 14px; padding: 10px;
+  box-shadow: 0 4px 16px rgba(127,119,221,0.05);
+}
+.et-spark-scroll { overflow-x: auto; overflow-y: hidden; width: 100%; height: 100%; }
+
+.et-radar-row { display: flex; gap: 10px; }
+.et-radar-row.is-wide   { flex-direction: row; align-items: stretch; }
+.et-radar-row.is-narrow { flex-direction: column-reverse; align-items: center; }
+.et-radar-wrap {
+  position: relative; flex: 0 0 auto; width: 218px; height: 240px;
+  background: #fff;
+  border: 1px solid rgba(200,180,220,.22);
+  border-radius: 14px; padding: 6px;
+}
+.et-emotion-cards {
+  flex: 1 1 auto; align-self: stretch; min-width: 0;
+  display: grid; gap: 6px;
+}
+.is-wide .et-emotion-cards   { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); }
+.is-narrow .et-emotion-cards { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 52px); }
+.et-emotion-card {
+  position: relative; overflow: hidden;
+  background: rgba(255,255,255,.82);
+  border: 1px solid var(--theme-hair);
+  border-radius: 10px;
+  padding: 6px 4px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 2px;
+  align-items: center; justify-content: center;
+  min-width: 0;
+}
+/* 底部色條：獨立子元素（不要用 border-bottom，會被 border 簡寫覆蓋） */
+.et-emotion-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
+.et-emotion-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--cv-ink);
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.et-emotion-swatch {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+}
+.et-emotion-value {
+  font-family: var(--sp-font-sans);
+  font-size: 16px; font-weight: 700; color: var(--cv-ink); line-height: 1;
+}
+.et-hint { font-size: 12px; color: var(--cv-title); text-align: center; }
+
+.et-seg {
+  display: flex; gap: 4px; padding: 3px;
+  background: rgba(255,255,255,.6);
+  border: 1px solid var(--theme-hair);
+  border-radius: 12px;
+}
+.et-seg-btn {
+  flex: 1 1 0; border: none; background: transparent; cursor: pointer;
+  padding: 6px 10px; border-radius: 9px;
+  font: inherit; font-size: 12.5px; font-weight: 700; color: var(--cv-label);
+  white-space: nowrap;
+}
+.et-seg-btn:hover { color: var(--cv-ink); }
+.et-seg-btn.is-on { background: var(--theme-deep); color: #fff; box-shadow: var(--theme-shadow-sm); }
+.et-period-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+.et-period-bar .et-seg { flex: 1 1 160px; }
+.et-period-nav { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.et-nav-label { font-size: 13px; font-weight: 700; color: var(--cv-ink); min-width: 0; text-align: center; }
+.et-nav-btn {
+  width: 30px; height: 30px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--theme-line);
+  background: linear-gradient(180deg, var(--theme-soft), rgba(255,255,255,.4));
+  color: var(--theme-deep); font-size: 12px;
+}
+.et-nav-btn:disabled { opacity: .35; cursor: default; }
+.et-wave { display: inline-block; animation: et-wave 1.2s ease-in-out infinite; }
+@keyframes et-wave {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
