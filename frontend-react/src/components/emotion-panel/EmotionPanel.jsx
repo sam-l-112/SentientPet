@@ -7,7 +7,8 @@
 //
 // 分頁包以 import.meta.glob 自動載入（../emotion-*/index.js），所以把任一包的資料夾
 // 移走，另一包仍能編譯與顯示。每個包的 index.js 匯出：
-//   { key, label, order, View }   View props：{ history, analyzing, saError, onJump, wide }
+//   { key, label, order, View }   View props：{ history, analyzing, saError, onJump, wide, active }
+//   active：這個分頁目前是否顯示中
 //
 // 兩個分頁都保持 mount（非作用中的以 display:none 隱藏），切換分頁時各自的狀態會保留。
 
@@ -80,7 +81,8 @@ export default function EmotionPanel({ history, analyzing, saError, onClose, onJ
           {TABS.map(({ key, label, View }) => (
             <div key={key} style={{ display: key === view ? "contents" : "none" }}>
               <ErrorBoundary label={label}>
-                <View history={history} analyzing={analyzing} saError={saError} onJump={onJump} wide={wide} />
+                <View history={history} analyzing={analyzing} saError={saError} onJump={onJump} wide={wide}
+                  active={key === view} />
               </ErrorBoundary>
             </div>
           ))}
