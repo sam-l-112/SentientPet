@@ -27,7 +27,9 @@ export function BarsAxis({ domain, width }) {
   );
 }
 
-export default function RangeBars({ bars, cellCount, cellW, domain, onTip }) {
+export default function RangeBars({ bars, visible, cellCount, cellW, domain, onTip }) {
+  // 只畫和 visible 格子範圍重疊的長條
+  const [from, to] = visible;
   const y = barY(domain);
   // 和 K 線圖同寬（最後一根若只涵蓋部分格子，也只畫到最後一格），兩張圖才能同步捲動
   const W = cellCount * cellW;
@@ -41,6 +43,7 @@ export default function RangeBars({ bars, cellCount, cellW, domain, onTip }) {
         y1={y(LARGE_CHANGE_THRESHOLD)} y2={y(LARGE_CHANGE_THRESHOLD)} />
 
       {bars.map((b, i) => {
+        if (b.firstCellIdx + CELLS_PER_BAR <= from || b.firstCellIdx >= to) return null;
         const x0 = b.firstCellIdx * cellW;
         const w = Math.min(CELLS_PER_BAR, cellCount - b.firstCellIdx) * cellW;
         const tipArgs = { kind: "bar", idx: i, center: x0 + w / 2 };

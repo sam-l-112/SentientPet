@@ -3,6 +3,7 @@
 // 每一格 = CELL_MINUTES 分鐘：直角方框頂 = 最高分、底 = 最低分，中間橫線 = 平均。
 // 只有 1 則時方框縮成一條橫線；沒有訊息的格子畫淡色虛線外框（空白格）；
 // 進行中的格子用較淡的樣式。顏色固定用色票中的紫色（紅色只留給長條圖的「起伏較大」）。
+// 只畫 visible = [from, to) 範圍內的格子（對話紀錄很長時避免產生上萬個圖形）；SVG 寬度仍是全部格子。
 
 import React from "react";
 
@@ -25,7 +26,9 @@ export function CandleAxis({ domain, width }) {
   );
 }
 
-export default function CandleChart({ cells, cellW, domain, labelEvery, onTip, empty, emptyText }) {
+export default function CandleChart({ cells, visible, cellW, domain, labelEvery, onTip, empty, emptyText }) {
+  const [from, to] = visible;
+  const shown = cells.slice(from, to);
   const y = candleY(domain);
   const W = cells.length * cellW;
   const top = y(domain.hi), bottom = y(domain.lo);
@@ -38,7 +41,8 @@ export default function CandleChart({ cells, cellW, domain, labelEvery, onTip, e
           className={v === 0 ? "et-zero-line" : "et-grid-line"} />
       ))}
 
-      {cells.map((c, i) => {
+      {shown.map((c, j) => {
+        const i = from + j;
         const x0 = i * cellW;
         const bx = x0 + (cellW - boxW) / 2;
         const tipArgs = { kind: "candle", idx: i, center: x0 + cellW / 2 };
@@ -69,10 +73,10 @@ export default function CandleChart({ cells, cellW, domain, labelEvery, onTip, e
         );
       })}
 
-      {cells.map((c, i) => (i % labelEvery === 0) && (
+      {shown.map((c, j) => ((from + j) % labelEvery === 0) && (
         <g key={`l${c.start}`} className="et-time-label">
-          <line x1={i * cellW} x2={i * cellW} y1={bottom} y2={bottom + 4} className="et-tick" />
-          <text x={i * cellW + 2} y={CANDLE_H - 6} textAnchor="start">{c.label}</text>
+          <line x1={(from + j) * cellW} x2={(from + j) * cellW} y1={bottom} y2={bottom + 4} className="et-tick" />
+          <text x={(from + j) * cellW + 2} y={CANDLE_H - 6} textAnchor="start">{c.label}</text>
         </g>
       ))}
 

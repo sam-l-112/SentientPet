@@ -33,7 +33,7 @@ function tipText(tip, cells, bars) {
   return barTip({ range, ...b });
 }
 
-export default function TrendCharts({ timeline, active }) {
+function TrendCharts({ timeline, active }) {
   const { cells: rawCells, bars, points } = timeline;
   const cells = React.useMemo(() => rawCells.map((c) => ({ ...c, label: hhmm(c.start) })), [rawCells]);
 
@@ -61,6 +61,15 @@ export default function TrendCharts({ timeline, active }) {
   const plotW = Math.max(120, (width || 360) - AXIS_W);
   const cellW = plotW / WINDOW_CELLS;
   const labelEvery = cellW >= 44 ? 1 : CELLS_PER_BAR;
+
+  // 只畫畫面內的格子加左右各一個視窗的緩衝（對齊長條邊界），拖曳時再補畫
+  const visible = React.useMemo(() => {
+    const n = cells.length;
+    const first = Math.floor(scrollLeft / cellW) - WINDOW_CELLS;
+    const last = Math.ceil((scrollLeft + plotW) / cellW) + WINDOW_CELLS;
+    const from = Math.max(0, Math.floor(first / CELLS_PER_BAR) * CELLS_PER_BAR);
+    return [from, Math.min(n, Math.max(from, last))];
+  }, [scrollLeft, cellW, plotW, cells.length]);
   const kDomain = React.useMemo(() => scoreDomain(points), [points]);
   const bDomain = React.useMemo(() => changeDomain(bars), [bars]);
 
@@ -68,6 +77,8 @@ export default function TrendCharts({ timeline, active }) {
     [kRef.current, bRef.current].forEach((n) => {
       if (n) n.scrollTo({ left: n.scrollWidth, behavior: smooth ? "smooth" : "auto" });
     });
+    // 立刻更新可見範圍（不等 scroll 事件），避免最右邊先空白一下
+    if (!smooth && kRef.current) setScrollLeft(kRef.current.scrollLeft);
   }, []);
 
   // 跟著最新：格子增加、寬度改變或分頁重新顯示時，若沒在看舊資料就捲到最右
@@ -143,7 +154,7 @@ export default function TrendCharts({ timeline, active }) {
         <CandleAxis domain={kDomain} width={AXIS_W} />
         <div className="et-scroll" ref={kRef} onScroll={() => onScroll(kRef, bRef)} {...pointerHandlers}
           style={{ height: CANDLE_H }}>
-          <CandleChart cells={cells} cellW={cellW} domain={kDomain} labelEvery={labelEvery}
+          <CandleChart cells={cells} visible={visible} cellW={cellW} domain={kDomain} labelEvery={labelEvery}
             onTip={handleTip} empty={!points.length} emptyText={COPY.empty} />
         </div>
       </div>
@@ -154,7 +165,7 @@ export default function TrendCharts({ timeline, active }) {
         <BarsAxis domain={bDomain} width={AXIS_W} />
         <div className="et-scroll" ref={bRef} onScroll={() => onScroll(bRef, kRef)} {...pointerHandlers}
           style={{ height: BARS_H }}>
-          <RangeBars bars={bars} cellCount={cells.length} cellW={cellW} domain={bDomain} onTip={handleTip} />
+          <RangeBars bars={bars} visible={visible} cellCount={cells.length} cellW={cellW} domain={bDomain} onTip={handleTip} />
         </div>
       </div>
       <div className="et-caption">{COPY.barCaption}</div>
@@ -174,3 +185,6 @@ export default function TrendCharts({ timeline, active }) {
     </div>
   );
 }
+
+// timeline 沒變時不重畫（例如主題變色動畫期間）
+export default React.memo(TrendCharts);
